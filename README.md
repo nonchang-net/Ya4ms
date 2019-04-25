@@ -1,4 +1,4 @@
-# ya2ms
+# Ya4ms
 
 ![wipです](https://user-images.githubusercontent.com/30385722/56750868-acfa2580-67bf-11e9-83c3-7fe068a92a1a.png)
 
