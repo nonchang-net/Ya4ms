@@ -51,7 +51,7 @@ export default class SevenSegment extends Vue {
 	private F: boolean = false;
 	private G: boolean = false;
 
-	private const segs: {[index: number]: boolean[]} = {
+	private readonly segs: {[index: number]: boolean[]} = {
 		0x0: [true , true , true , true , true , true , false],
 		0x1: [false, true , true , false, false, false, false],
 		0x2: [true , true , false, true , true , false, true ],
