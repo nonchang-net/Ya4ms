@@ -23,7 +23,7 @@
       </div>
 
       <div class="container-item">
-        <Buttons class="Buttons" ref="buttons" @onClickNumber="onClickButton()"/>
+        <Buttons class="Buttons" ref="buttons" @click-number="onClickButton"/>
       </div>
 
     </div>
@@ -51,7 +51,6 @@ import MyTest from './pureTypeScriptSrc/MyTest';
 
 export default class App extends Vue {
 
-  private buttons: Buttons;
   private sevenSegment: SevenSegment;
 
   constructor() {
@@ -59,17 +58,11 @@ export default class App extends Vue {
     // const myTest: MyTest = new MyTest('test string here!');
     // console.log('mytest.GetTest(): ' + myTest.GetTest());
 
-    // TODO: ここで代入しても取れないが、コンストラクタで何か入れないとコンパイルエラー……。多分筋の悪いことをやってるんだろう。あとで再検討。
+    // TODO: ここで代入しても取れないが、コンストラクタで何か入れないとコンパイルエラーになる……。多分筋の悪いことをやってるんだろう。あとで再検討。
     this.sevenSegment =  (this.$refs.sevenSegment as SevenSegment);
-    this.buttons = (this.$refs.buttons as Buttons);
   }
 
   public mounted() {
-
-    if (!this.buttons) {
-      // TODO: buttonsで最後に押された番号を取りたいだけなので、もっと良い書き方がありそう。ダウンキャストも気になる
-      this.buttons = (this.$refs.buttons as Buttons);
-    }
 
     if (!this.sevenSegment) {
       // undone: もっといい書き方ないのかな。いちいちダウンキャストしたくない
@@ -81,9 +74,9 @@ export default class App extends Vue {
 
   }
 
-  public onClickButton() {
-    console.log('App.vue: onClickButton()', this.buttons.LastSelected);
-    this.sevenSegment.set(this.buttons.LastSelected);
+  public onClickButton(num: number) {
+    // console.log('App.vue: onClickButton() num:', num);
+    this.sevenSegment.set(num);
   }
 }
 </script>

@@ -43,12 +43,20 @@ import Button from './Button.vue';
 
 export default class Buttons extends Vue {
 
-	public LastSelected: number = -1;
+	// public LastSelected: number = -1;
 
-	@Emit('onClickNumber')
+	@Emit()
+	public clickNumber(num: number) {
+		// console.log('Buttons.vue: clickNumber(): ' + num);
+		if (false) {
+			console.log('TODO: ignore warning: block is empty');
+		}
+	}
+
 	public onClickedNumber(num: number) {
-		console.log('Buttons.vue: onClicked(): ' + num);
-		this.LastSelected = num;
+		// console.log('Buttons.vue: onClicked(): ' + num);
+		// this.LastSelected = num;
+		this.clickNumber(num);
 	}
 }
 
