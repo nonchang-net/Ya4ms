@@ -13,14 +13,19 @@ import { Component, Emit, Prop, Vue } from 'vue-property-decorator';
 export default class Button extends Vue {
 	@Prop() private text!: string;
 
-	@Emit()
-	public clicked() {
-		if (false) { console.log('TODO: ignore warning : block is empty'); }
-	}
+	// @Emit()
+	// public clicked() {
+	// 	if (false) { console.log('TODO: ignore warning : block is empty'); }
+	// }
 
+	// public GetText(): string {
+	// 	return this.text;
+	// }
+
+	@Emit('clicked')
 	public onClick() {
-		console.log('CLICK() ' + this.text);
-		this.clicked();
+		// console.log('CLICK() ' + this.text);
+		// this.clicked();
 	}
 
 }

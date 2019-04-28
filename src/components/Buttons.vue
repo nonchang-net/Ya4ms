@@ -1,38 +1,38 @@
 <template>
 	<div class="Buttons">
 		<div class="row">
-			<Button class="myButton" text="C" @clicked='onClicked("C")'/>
-			<Button class="myButton" text="D" />
-			<Button class="myButton" text="E" />
-			<Button class="myButton" text="F" />
-			<Button class="myButton" text="A SET" />
+			<Button class="myButton" text="C" @clicked='onClickedNumber(0xC)'/>
+			<Button class="myButton" text="D" @clicked='onClickedNumber(0xD)'/>
+			<Button class="myButton" text="E" @clicked='onClickedNumber(0xE)'/>
+			<Button class="myButton" text="F" @clicked='onClickedNumber(0xF)'/>
+			<Button class="myButton" text="A SET"/>
 		</div>
 		<div class="row">
-			<Button class="myButton" text="8" />
-			<Button class="myButton" text="9" />
-			<Button class="myButton" text="A" />
-			<Button class="myButton" text="B" />
-			<Button class="myButton" text="INCR" />
+			<Button class="myButton" text="8" @clicked='onClickedNumber(0x8)'/>
+			<Button class="myButton" text="9" @clicked='onClickedNumber(0x9)'/>
+			<Button class="myButton" text="A" @clicked='onClickedNumber(0xA)'/>
+			<Button class="myButton" text="B" @clicked='onClickedNumber(0xB)'/>
+			<Button class="myButton" text="INCR"/>
 		</div>
 		<div class="row">
-			<Button class="myButton" text="4" />
-			<Button class="myButton" text="5" />
-			<Button class="myButton" text="6" />
-			<Button class="myButton" text="7" />
-			<Button class="myButton" text="RUN" />
+			<Button class="myButton" text="4" @clicked='onClickedNumber(0x4)'/>
+			<Button class="myButton" text="5" @clicked='onClickedNumber(0x5)'/>
+			<Button class="myButton" text="6" @clicked='onClickedNumber(0x6)'/>
+			<Button class="myButton" text="7" @clicked='onClickedNumber(0x7)'/>
+			<Button class="myButton" text="RUN"/>
 		</div>
 		<div class="row">
-			<Button class="myButton" text="0" />
-			<Button class="myButton" text="1" />
-			<Button class="myButton" text="2" />
-			<Button class="myButton" text="3" />
-			<Button class="myButton" text="RESET" />
+			<Button class="myButton" text="0" @clicked='onClickedNumber(0x0)'/>
+			<Button class="myButton" text="1" @clicked='onClickedNumber(0x1)'/>
+			<Button class="myButton" text="2" @clicked='onClickedNumber(0x2)'/>
+			<Button class="myButton" text="3" @clicked='onClickedNumber(0x3)'/>
+			<Button class="myButton" text="RESET"/>
 		</div>
 	</div>
 </template>
 
 <script lang="ts">
-import { Component, Prop, Vue } from 'vue-property-decorator';
+import { Component, Emit, Prop, Vue } from 'vue-property-decorator';
 import Button from './Button.vue';
 
 @Component({
@@ -43,8 +43,12 @@ import Button from './Button.vue';
 
 export default class Buttons extends Vue {
 
-	public onClicked(str: string) {
-		console.log('Buttons:onClicked(): ' + str);
+	public LastSelected: number = -1;
+
+	@Emit('onClickNumber')
+	public onClickedNumber(num: number) {
+		console.log('Buttons.vue: onClicked(): ' + num);
+		this.LastSelected = num;
 	}
 }
 
