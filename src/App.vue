@@ -64,6 +64,7 @@ export default class App extends Vue {
 
   public mounted() {
 
+    // 遅延初期化
     if (!this.sevenSegment) {
       // undone: もっといい書き方ないのかな。いちいちダウンキャストしたくない
       this.sevenSegment =  (this.$refs.sevenSegment as SevenSegment);
