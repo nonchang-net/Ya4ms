@@ -1,5 +1,5 @@
 // import 'jest-extended';
-import { shallowMount } from '@vue/test-utils';
+// import { shallowMount } from '@vue/test-utils';
 
 
 // import HelloWorld from '../HelloWorld.vue'
@@ -14,7 +14,7 @@ import { shallowMount } from '@vue/test-utils';
 // })
 
 describe('MyTest.ts', () => {
-  test('失敗するテストのサンプル', () => {
-    expect(123).toMatch(234);
+  test('toEqualのテスト', () => {
+    expect(123).toEqual(123);
   })
 })

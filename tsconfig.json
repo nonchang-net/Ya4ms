@@ -12,7 +12,8 @@
     "sourceMap": true,
     "baseUrl": ".",
     "types": [
-      "webpack-env"
+      "webpack-env",
+      "jest"
     ],
     "paths": {
       "@/*": [
@@ -26,6 +27,9 @@
       "scripthost"
     ]
   },
+  "compilerOptions.types_COMMENTOUT":[
+    "node"
+  ],
   "include": [
     "src/**/*.ts",
     "src/**/*.vue",
@@ -38,5 +42,23 @@
   "exclude": [
     "src/**/*.spec.ts",
     "node_modules"
-  ]
+  ],
+
+  "jest-COMMENTOUT":{
+    "COMMENT": "jestが動かない。。jestの設定を試しにこっちにも書いてみる",
+
+    "jest": {
+      "moduleFileExtensions": [
+        "js",
+        "ts",
+        "json",
+        "vue"
+      ],
+      "transform": {
+        ".*\\.(vue)$": "vue-jest",
+        "^.+\\.tsx?$": "ts-jest"
+      },
+      "testURL": "http://localhost/"
+    }
+  }
 }
