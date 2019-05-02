@@ -19,10 +19,10 @@
 
 */
 
-import { States } from './Enums'
-import State from './State'
+import { States } from './Enums';
+import State from './State';
 
-export default class GMC4{
+export default class GMC4 {
 
 	private readonly state: State;
 
@@ -33,11 +33,11 @@ export default class GMC4{
 
 	// UNDONE: コード列実行
 	// - 音再生、LED変更などアウトプットに当たる要素はコールバックでシステムコールをそのまま渡す想定
-	public Run(): void{
+	public Run(): void {
 
 		// ループ実行
 		while (true) {
-			var currentState: States = this.state.Step();
+			const currentState: States = this.state.Step();
 
 			switch (currentState) {
 
@@ -59,18 +59,14 @@ export default class GMC4{
 					throw new Error(`OperandNotEnough`);
 					break;
 
-					
-
 				default:
 					throw new Error(`undefined state found: ${currentState}`);
 			}
 		}
 	}
 
-	public Dump(): any{
+	public Dump(): any {
 		return this.state.Dump();
 	}
 
 }
-
-

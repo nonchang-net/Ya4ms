@@ -1,19 +1,19 @@
 
 
 // GMC4 stateの実行状態定数
-export const enum States{
+export const enum States {
 	preWorking,
 	programUndone,
 	programFinished,
-	operandNotEnough,// オペランドが足りない
+	operandNotEnough, // オペランドが足りない
 }
 
 // オペコード
-export const enum Ops{
+export const enum Ops {
 	KeyToARegister = 0x0, // 0x0: KA: キーの内容をAレジスタに格納。キー入力があればflagオン
 	SetSevenSegment = 0x1, // 0x1: AO: マニュアルによると、数字LEDの操作らしい
-	ChangeABYZ = 0x2, // 0x2: CH: 
-	ChangeAY = 0x3, // 0x3: CY: 
+	ChangeABYZ = 0x2, // 0x2: CH:
+	ChangeAY = 0x3, // 0x3: CY:
 	ARegisterToYReferenceMemory = 0x4, // 0x4: AM
 	YReferenceMemoryToARegister, // 0x5: MA
 	MemoryPlus, // 0x6: M+
@@ -30,7 +30,7 @@ export const enum Ops{
 
 // サービスコール(E0-Ef → CAL XXXX)ニーモニック
 // - ここではコールバックにまとめるため、OpcodeのKeyToARegisterも追加定義。
-export const enum Calls { 
+export const enum Calls {
 	RestoreSevenSegmentToZero = 0x0, // RSTO: 表示初期化: 0→数字LED
 	SetBinaryLeds, // SETR: 表示: 1→2進LED[Y]
 	ResetBinaryLeds, // RSTR: 表示: 0→2進LED[Y]

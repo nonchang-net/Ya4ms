@@ -1,8 +1,18 @@
-import { States, Ops, Calls } from './Enums'
-import Utils from './Utils'
+/*tslint:disable:no-bitwise member-ordering*/
+
+/*
+
+GMC4内部状態表現クラス
+
+- だいたい本体。名前間違ったか、責務持たせすぎかも。
+
+*/
+
+import { States, Ops, Calls } from './Enums';
+import Utils from './Utils';
 
 // GMC4の内部状態を示すクラス
-export default class State{
+export default class State {
 	// プログラム配列
 	private program: Uint8Array;
 
@@ -30,12 +40,12 @@ export default class State{
 
 	constructor(program: Uint8Array | string, callback?: (num: number) => void) {
 
-		if ('string' == typeof program) {
+		if ('string' === typeof program) {
 			// 文字列から読み込み
 			const buf = new ArrayBuffer(program.length);
 			const view = new Uint8Array(buf);
-			for (var i = 0; i < program.length; i++){
-				var nible: number = parseInt(program[i], 16);
+			for (let i = 0; i < program.length; i++) {
+				const nible: number = parseInt(program[i], 16);
 				if (isNaN(nible)) {
 					throw Error(`parse error: invalid symbol at index ${i}. ${program[i]}`);
 				}
@@ -51,7 +61,7 @@ export default class State{
 		// メモリ初期化
 		// - gmc4は4bitx16の8バイトのメモリを持つ
 		// - UNDONE: Uint8Arrayを4bitくぎりでpackするのは面倒になりそうなので、ここではまず8bitx16の16バイトを確保して、各バイトの下位4bitのみ使う実装を検討してみる。
-		var memoryBuffer = new ArrayBuffer(16);
+		const memoryBuffer = new ArrayBuffer(16);
 		this.memory = new Uint8Array(memoryBuffer);
 
 		this.Reset();
@@ -126,7 +136,7 @@ export default class State{
 
 			case Ops.StoreDirectNumberToARegister: // 0x8: TIA x
 				// programのオペランドが足りなければ失敗ステートを返す
-				if (this.program.length < this.step+1) {
+				if (this.program.length < this.step + 1 ) {
 					return States.operandNotEnough;
 				}
 				this.a = this.GetNextCode();
@@ -135,7 +145,7 @@ export default class State{
 
 			case Ops.AddARegisterToDirectNumber: // 0x9: AIA
 				// programのオペランドが足りなければ失敗ステートを返す
-				if (this.program.length < this.step+1) {
+				if (this.program.length < this.step + 1 ) {
 					return States.operandNotEnough;
 				}
 				this.a += this.GetNextCode();
@@ -145,7 +155,7 @@ export default class State{
 
 			case Ops.StoreDirectNumberToYRegister:
 				// programのオペランドが足りなければ失敗ステートを返す
-				if (this.program.length < this.step+1) {
+				if (this.program.length < this.step + 1 ) {
 					return States.operandNotEnough;
 				}
 				this.y = this.GetNextCode();
@@ -154,7 +164,7 @@ export default class State{
 
 			case Ops.AddYRegisterToDirectNumber:
 				// programのオペランドが足りなければ失敗ステートを返す
-				if (this.program.length < this.step+1) {
+				if (this.program.length < this.step + 1 ) {
 					return States.operandNotEnough;
 				}
 				this.y += this.GetNextCode();
@@ -164,62 +174,62 @@ export default class State{
 
 			case Ops.CompareDirectNumberToARegister: // 0xC: CIA
 				// programのオペランドが足りなければ失敗ステートを返す
-				if (this.program.length < this.step+1) {
+				if (this.program.length < this.step + 1 ) {
 					return States.operandNotEnough;
 				}
-				this.flag = this.a != this.GetNextCode();
+				this.flag = this.a !== this.GetNextCode();
 				break;
 
-			case Ops.CompareDirectNumberToYRegister: //0xD: CIY
+			case Ops.CompareDirectNumberToYRegister: // 0xD: CIY
 				// programのオペランドが足りなければ失敗ステートを返す
-				if (this.program.length < this.step+1) {
+				if (this.program.length < this.step + 1 ) {
 					return States.operandNotEnough;
 				}
-				this.flag = this.y != this.GetNextCode();
+				this.flag = this.y !== this.GetNextCode();
 				break;
 
 			case Ops.CallService: // 0xE: CAL
 				// programのオペランドが足りなければ失敗ステートを返す
-				if (this.program.length < this.step+1) {
+				if (this.program.length < this.step + 1 ) {
 					return States.operandNotEnough;
 				}
 				this.Call(this.GetNextCode());
 				break;
 
 			case Ops.Jump: // 0xF: JUMP
-				
+
 			// programのオペランドが足りなければ失敗ステートを返す
-				if (this.program.length < this.step+2) {
+				if (this.program.length < this.step + 2 ) {
 					return States.operandNotEnough;
 				}
-				
-			var highAddress: number = this.GetNextCode();
-			var lowAddress: number = this.GetNextCode();
+
+				const highAddress: number = this.GetNextCode();
+				const lowAddress: number = this.GetNextCode();
 				if (this.flag) {
-					var address: number = highAddress * 0x10 + lowAddress;
+					const address: number = highAddress * 0x10 + lowAddress;
 					this.step = address;
 				}
 				break;
 		}
 
 		// 終了判定
-		if (this.program.length == this.step) {
+		if (this.program.length === this.step) {
 			return States.programFinished;
 		}
 		return States.programUndone;
 	}
 
 	private GetNextCode(): number {
-		if (this.program.length == this.step) {
-			// UNDONE: 正常なコードなら来ないはず。jump命令の引数事前評価ができてないので仮置き。一応例外出しておく
+		if (this.program.length === this.step) {
+			// UNDONE: 正常なコードなら来ないはず？ オペランド数チェックは仮で入れたので、ここでは一応例外を出しておく
 			throw new Error('GetNextCode(): program was finished!');
 		}
-		var code: number = this.program[this.step];
+		const code: number = this.program[this.step];
 		this.step++;
 		return code;
 	}
 
-	private Call(code: number): void{
+	private Call(code: number): void {
 		switch (code) {
 
 			// 表示・サウンド関係はそのままフラグ立ててコールバックを呼ぶ
@@ -235,8 +245,8 @@ export default class State{
 					this.callback(code);
 				}
 				break;
-			
-			// UNDONE: SUNDニーモニックはAレジスタの値をコールバック側に渡す必要がある。検討中……コールバック分けるか、default nullの引数渡しで済ませるか？
+
+				// UNDONE: SUNDニーモニックはAレジスタの値をコールバック側に渡す必要がある。検討中……コールバック分けるか、default nullの引数渡しで済ませるか？
 			case Calls.PlaySound: // SUND
 				if (this.callback) {
 					this.flag = true;
@@ -258,7 +268,7 @@ export default class State{
 				break;
 
 			case Calls.RightShiftForARegister: // SIFT
-				this.flag = Math.floor(this.a % 2) == 1;
+				this.flag = Math.floor(this.a % 2) === 1;
 				// undone: 4bit考慮は不要？ ここで下位4bit分残して他をクリアしておくべきかも。
 				this.a = Math.floor(this.a / 2);
 				break;
@@ -278,32 +288,33 @@ export default class State{
 	}
 
 	private Swap(a: number, b: number) {
-		var s: number = a;
+		const s: number = a;
 		a = b;
 		b = s;
 	}
 
 	// デバッグダンプ
-	// - 検討中。テストできるようにフルセットjsonで返す？
+	// - 検討中。とりあえずテストできるようにフルセットjsonで返してみる
+	// - TODO: vue側ビルドに含めたくない。C#のpartial的な方法ないかな。あとで調査
 	public Dump(): any {
 		return {
-			'registers': {
-				'a': this.a,
-				'b': this.b,
-				'y': this.y,
-				'z': this.z,
-				'a2': this.a2,
-				'b2': this.b2,
-				'y2': this.y2,
-				'z2': this.z2,
+			registers: {
+				a: this.a,
+				b: this.b,
+				y: this.y,
+				z: this.z,
+				a2: this.a2,
+				b2: this.b2,
+				y2: this.y2,
+				z2: this.z2,
 			},
-			'states': {
-				'step': this.step,
-				'flag': this.flag,
+			states: {
+				step: this.step,
+				flag: this.flag,
 			},
-			'program': this.program,
-			'memory': this.memory
-		}
+			program: this.program,
+			memory: this.memory,
+		};
 	}
 }
 
