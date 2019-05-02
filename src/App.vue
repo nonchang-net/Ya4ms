@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <h1>Ya4ms: Yet Another 4bit Micon Simulator</h1>
-    <p>test 2019 0427 1929</p>
+    <p>test 2019 0502 1948</p>
     <hr />
 
     <div class="board">
