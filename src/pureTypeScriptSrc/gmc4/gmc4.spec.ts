@@ -1,4 +1,5 @@
-import { default as GMC4, Utils } from './gmc4';
+import { default as GMC4 } from './gmc4';
+import Utils from './Utils';
 
 describe('GMC4.ts', () => {
 
