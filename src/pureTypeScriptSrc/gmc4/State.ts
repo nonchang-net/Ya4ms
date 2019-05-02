@@ -74,10 +74,6 @@ export default class State{
 	// ワンステップ実行
 	public Step(): number {
 
-		if (this.program.length == this.step - 1) {
-			return States.programFinished;
-		}
-
 		switch (this.GetNextCode()) {
 
 			case Ops.KeyToARegister: // 0x0: KA
@@ -129,40 +125,74 @@ export default class State{
 				break;
 
 			case Ops.StoreDirectNumberToARegister: // 0x8: TIA x
+				// programのオペランドが足りなければ失敗ステートを返す
+				if (this.program.length < this.step+1) {
+					return States.operandNotEnough;
+				}
 				this.a = this.GetNextCode();
 				this.flag = true;
 				break;
 
 			case Ops.AddARegisterToDirectNumber: // 0x9: AIA
+				// programのオペランドが足りなければ失敗ステートを返す
+				if (this.program.length < this.step+1) {
+					return States.operandNotEnough;
+				}
 				this.a += this.GetNextCode();
 				this.flag = this.a > 0xf;
 				this.a = Utils.RoundTo4Bit(this.a);
 				break;
 
 			case Ops.StoreDirectNumberToYRegister:
+				// programのオペランドが足りなければ失敗ステートを返す
+				if (this.program.length < this.step+1) {
+					return States.operandNotEnough;
+				}
 				this.y = this.GetNextCode();
 				this.flag = true;
 				break;
 
 			case Ops.AddYRegisterToDirectNumber:
+				// programのオペランドが足りなければ失敗ステートを返す
+				if (this.program.length < this.step+1) {
+					return States.operandNotEnough;
+				}
 				this.y += this.GetNextCode();
 				this.flag = this.y > 0xf;
 				this.y = Utils.RoundTo4Bit(this.y);
 				break;
 
 			case Ops.CompareDirectNumberToARegister: // 0xC: CIA
+				// programのオペランドが足りなければ失敗ステートを返す
+				if (this.program.length < this.step+1) {
+					return States.operandNotEnough;
+				}
 				this.flag = this.a != this.GetNextCode();
 				break;
 
 			case Ops.CompareDirectNumberToYRegister: //0xD: CIY
-			this.flag = this.y != this.GetNextCode();
+				// programのオペランドが足りなければ失敗ステートを返す
+				if (this.program.length < this.step+1) {
+					return States.operandNotEnough;
+				}
+				this.flag = this.y != this.GetNextCode();
 				break;
 
 			case Ops.CallService: // 0xE: CAL
+				// programのオペランドが足りなければ失敗ステートを返す
+				if (this.program.length < this.step+1) {
+					return States.operandNotEnough;
+				}
 				this.Call(this.GetNextCode());
 				break;
 
 			case Ops.Jump: // 0xF: JUMP
+				
+			// programのオペランドが足りなければ失敗ステートを返す
+				if (this.program.length < this.step+2) {
+					return States.operandNotEnough;
+				}
+				
 			var highAddress: number = this.GetNextCode();
 			var lowAddress: number = this.GetNextCode();
 				if (this.flag) {
@@ -171,16 +201,22 @@ export default class State{
 				}
 				break;
 		}
+
+		// 終了判定
+		if (this.program.length == this.step) {
+			return States.programFinished;
+		}
 		return States.programUndone;
 	}
 
 	private GetNextCode(): number {
-		this.step++;
 		if (this.program.length == this.step) {
 			// UNDONE: 正常なコードなら来ないはず。jump命令の引数事前評価ができてないので仮置き。一応例外出しておく
 			throw new Error('GetNextCode(): program was finished!');
 		}
-		return this.program[this.step];
+		var code: number = this.program[this.step];
+		this.step++;
+		return code;
 	}
 
 	private Call(code: number): void{

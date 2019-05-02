@@ -56,26 +56,23 @@ describe('GMC4.ts', () => {
     expect(address).toEqual(0x23);
 	});
 
-	test('chars to program test', () => {
-		var codestr = '8A91';
-		// var codestr = '8A91G';
-		for (var i = 0; i < codestr.length; i++){
-			var nible: number = parseInt(codestr[i], 16);
-			if (isNaN(nible)) {
-				// TODO: NaNが見つかったら実際はパースエラーを返す
-			}
-			console.log(`code: ${codestr[i]} nible:0x${nible.toString(16)}`);
-		}
-	});
-
+	// note: Aレジスタに0xAを代入し、1を加算するコードをテスト
 	test(`run code for string`, () => {
-		var gmc4 = new GMC4();
-		gmc4.Run('8A91');
+		var gmc4 = new GMC4('8A91');
+		gmc4.Run();
+		var dumped = gmc4.Dump();
+
+		// Aレジスタは0xBになっているはず
+		expect(dumped.registers.a).toEqual(0xB);
+		// flagはAIAの結果、falseになっているはず
+    expect(dumped.states.flag).toEqual(false);
 	});
 
+		// `G`はパースできないので、newしたら例外が投げられる
 	test(`run code for string with invalid code`, () => {
-		var gmc4 = new GMC4();
-		gmc4.Run('8A91G');
+		expect(() => {
+			new GMC4('8A91G');
+		}).toThrowError('parse error: invalid symbol at index 4. G')
 	});
 
 

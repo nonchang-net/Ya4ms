@@ -5,6 +5,7 @@ export const enum States{
 	preWorking,
 	programUndone,
 	programFinished,
+	operandNotEnough,// オペランドが足りない
 }
 
 // オペコード
