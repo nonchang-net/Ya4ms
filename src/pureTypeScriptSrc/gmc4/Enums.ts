@@ -11,7 +11,7 @@ export const enum States {
 // オペコード
 export const enum Ops {
 	KeyToARegister = 0x0, // 0x0: KA: キーの内容をAレジスタに格納。キー入力があればflagオン
-	SetSevenSegment = 0x1, // 0x1: AO: マニュアルによると、数字LEDの操作らしい
+	SetSevenSegment = 0x1, // 0x1: AO: マニュアル23ページによると、Arの内容を数字LEDに表示する命令
 	ChangeABYZ = 0x2, // 0x2: CH:
 	ChangeAY = 0x3, // 0x3: CY:
 	ARegisterToYReferenceMemory = 0x4, // 0x4: AM
@@ -38,14 +38,14 @@ export const enum Calls {
 	SwapRegisterSet, // CHNG: 入れ替え: A,B,Y,Z⇔A',B',Y',Z'
 	RightShiftForARegister, // SIFT: Ar%2→Flag,Ar/2→Ar : フラグにはAr[0]が入る
 	BeepEnd, // ENDS: サウンド: エンド音
-	BeepError, // サウンド: エラー音
-	BeepShort, // サウンド: ショート音
-	BeepLong, // サウンド: ロング音
-	PlaySound, // サウンド: Arの音階の音
-	Timer = 0xC, // タイマー: (Ar+1)x0.1sec待つ
-	DSPR, // 表示: (E)→2進LED[0:3],(F)→2進LED[4:6]
-	DEMminus, // DEC((Y)-Ar)→(Y),Y--
-	DEMplus,  // DEC((Y)+Ar)→(Y),Y--
+	BeepError, // ERRS: サウンド: エラー音
+	BeepShort, // SHTS: サウンド: ショート音
+	BeepLong, // LONS: サウンド: ロング音
+	PlaySound, // SUNS: サウンド: Arの音階の音
+	Timer = 0xC, // TIMR: タイマー: (Ar+1)x0.1sec待つ
+	DSPR, // DSPR: 表示: (E)→2進LED[0:3],(F)→2進LED[4:6]
+	DEMminus, // DEM-: DEC((Y)-Ar)→(Y),Y--
+	DEMplus,  // DEM+: DEC((Y)+Ar)→(Y),Y--
 
 	KeyToARegister, // Opcode 0x0: KA: キーの内容をAレジスタに格納。キー入力があればflagオン
 	SetSevenSegment, // Opcode 0x1: AO: 7セグ表示
