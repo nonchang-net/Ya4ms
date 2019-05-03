@@ -26,9 +26,17 @@ export default class GMC4 {
 
 	private readonly state: State;
 
-	constructor(code: Uint8Array | string, callback?: (num: number) => void) {
+	constructor(code?: Uint8Array | string, callback?: (num: number) => void) {
 		// state初期化
 		this.state = new State(code, callback);
+	}
+
+	public SetCode(code: Uint8Array | string) {
+		this.state.SetCode(code);
+	}
+
+	public SetCallback(callback: (num: number) => void) {
+		this.state.SetCallback(callback);
 	}
 
 	// UNDONE: コード列実行

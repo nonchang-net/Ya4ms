@@ -1,35 +1,38 @@
 <template>
-  <div id="app">
-    <h1>Ya4ms: Yet Another 4bit Micon Simulator</h1>
-    <p>test 2019 0502 1948</p>
-    <hr />
+	<div id="app">
+		<h1>Ya4ms: Yet Another 4bit Micon Simulator</h1>
+		<p>test 2019 0502 1948</p>
+		<hr />
 
-    <div class="board">
+		<div class="board">
 
-      <div class="container-item">
-        <div class="leds">
-          <p>LEDS</p>
-          <Led class="led" state="true" />
-          <Led class="led"  state="true" />
-          <Led class="led"  state="false" />
-          <Led class="led"  state="true" />
-          <Led class="led"  state="true" />
-          <Led class="led"  state="true" />
-          <Led class="led"  state="true" />
-        </div>
-        <div class="sevenSegmentWrapper">
-          <SevenSegment ref="sevenSegment" class="SevenSegment"/>
-        </div>
-      </div>
+			<div class="container-item">
+				<div class="leds">
+					<p>LEDS</p>
+					<Led class="led" state="true" />
+					<Led class="led"  state="true" />
+					<Led class="led"  state="false" />
+					<Led class="led"  state="true" />
+					<Led class="led"  state="true" />
+					<Led class="led"  state="true" />
+					<Led class="led"  state="true" />
+				</div>
+				<div class="sevenSegmentWrapper">
+					<SevenSegment ref="sevenSegment" class="SevenSegment"/>
+				</div>
 
-      <div class="container-item">
-        <Buttons class="Buttons" ref="buttons" @click-number="onClickButton"/>
-      </div>
+				<DumpView />
 
-    </div>
-    <hr />
-    <p>test 20190421 1931</p>
-  </div>
+			</div>
+
+			<div class="container-item">
+				<Buttons class="Buttons" ref="buttons" @click-number="onClickButton"/>
+			</div>
+
+		</div>
+		<hr />
+		<p>test 20190421 1931</p>
+	</div>
 </template>
 
 <script lang="ts">
@@ -37,74 +40,85 @@ import { Component, Vue } from 'vue-property-decorator';
 import Buttons from './components/Buttons.vue';
 import SevenSegment from './components/SevenSegment.vue';
 import Led from './components/Led.vue';
+import DumpView from './components/DumpView/DumpView.vue';
+
+import GMC4 from './pureTypeScriptSrc/gmc4/gmc4';
+
 
 import MyTest from './pureTypeScriptSrc/MyTest';
 
 
 @Component({
-  components: {
-    Buttons,
-    SevenSegment,
-    Led,
-  },
+	components: {
+		Buttons,
+		SevenSegment,
+		Led,
+		DumpView,
+	},
 })
 
 export default class App extends Vue {
 
-  private sevenSegment: SevenSegment;
+	private sevenSegment: SevenSegment;
+	private gmc4: GMC4;
 
-  constructor() {
-    super();
-    // const myTest: MyTest = new MyTest('test string here!');
-    // console.log('mytest.GetTest(): ' + myTest.GetTest());
+	constructor() {
+		super();
+		// const myTest: MyTest = new MyTest('test string here!');
+		// console.log('mytest.GetTest(): ' + myTest.GetTest());
 
-    // TODO: ここで代入しても取れないが、コンストラクタで何か入れないとコンパイルエラーになる……。多分筋の悪いことをやってるんだろう。あとで再検討。
-    this.sevenSegment =  (this.$refs.sevenSegment as SevenSegment);
-  }
+		// TODO: ここで代入しても取れないが、コンストラクタで何か入れないとコンパイルエラーになる……。多分筋の悪いことをやってるんだろう。あとで再検討。
+		this.sevenSegment =  (this.$refs.sevenSegment as SevenSegment);
 
-  public mounted() {
+		this.gmc4 = new GMC4();
+	}
 
-    // 遅延初期化
-    if (!this.sevenSegment) {
-      // undone: もっといい書き方ないのかな。いちいちダウンキャストしたくない
-      this.sevenSegment =  (this.$refs.sevenSegment as SevenSegment);
-    }
+	public mounted() {
 
-    // 7セグ表示を初期化
-    this.sevenSegment.set(0x0);
+		// 遅延初期化
+		if (!this.sevenSegment) {
+			// undone: もっといい書き方ないのかな。いちいちダウンキャストしたくない
+			this.sevenSegment =  (this.$refs.sevenSegment as SevenSegment);
+		}
 
-  }
+		// 7セグ表示を初期化
+		this.sevenSegment.set(0x0);
 
-  public onClickButton(num: number) {
-    // console.log('App.vue: onClickButton() num:', num);
-    this.sevenSegment.set(num);
-  }
+		// 初期状態をdump、画面出力
+		// this.DumpView(this.gmc4.Dump());
+
+	}
+
+	public onClickButton(num: number) {
+		// console.log('App.vue: onClickButton() num:', num);
+		this.sevenSegment.set(num);
+	}
 }
 </script>
 
 <style lang="scss">
 
 *, *:before, *:after {
-  box-sizing: border-box;
-  margin : 0 ;
-  padding: 0 ;
+	box-sizing: border-box;
+	margin : 0 ;
+	padding: 0 ;
 }
 
 #app {
-  font-family: 'Avenir', Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
+	font-family: 'Avenir', Helvetica, Arial, sans-serif;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	text-align: center;
+	color: #2c3e50;
+	margin-top: 60px;
 }
 
 .board{
-  display: flex;
-  width : 100%;
+	display: flex;
+	width : 100%;
 
-  background : rgb(53, 122, 32);
-  padding : 1em ;
+	background : rgb(53, 122, 32);
+	padding : 1em ;
 }
 
 .container-item{
@@ -114,36 +128,46 @@ export default class App extends Vue {
 
 
 .leds{
-  display: flex;
+	display: flex;
 
-  width : 100%;
-  margin-left : 0 ; margin-right : 0 ;
+	width : 100%;
+	margin-left : 0 ; margin-right : 0 ;
 }
 .leds p{
-  text-align : left;
-  font-weight : bold;
-  color : white;
+	text-align : left;
+	font-weight : bold;
+	color : white;
 }
 
 .led{
-  margin-left : 0.5em ;
+	margin-left : 0.5em ;
 }
 
 .Buttons{
-  border :2px solid rgb(34, 58, 27);
-  width : 100%;
+	border :2px solid rgb(34, 58, 27);
+	width : 100%;
 }
 
 .sevenSegmentWrapper{
-  padding : 10px;
-  height : 140px;
-  width : 85px;
-  background : #333;
-  border-radius : 10px;
+	padding : 10px;
+	height : 140px;
+	width : 85px;
+	background : #333;
+	border-radius : 10px;
 }
 
 .SevenSegment{
-  transform : skewX(-5deg);
+	transform : skewX(-5deg);
+}
+
+
+
+@media screen and ( max-width: 480px ) {
+	.board{
+		flex-direction : column;
+		// .container-item{
+		// }
+	}
 }
 
 </style>
