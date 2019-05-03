@@ -30,8 +30,8 @@ export default class State {
 	private flag: boolean = false;
 
 	// レジスタ
-	private registers = new RegisterSet(0,0,0,0); // a,b,y,z. 順に6F,6C,6E,6D
-	private registers2 = new RegisterSet(0,0,0,0); // a2,b2,y2,z2. 69,67,68,66
+	private registers = new RegisterSet(0, 0, 0, 0); // a,b,y,z. 順に6F,6C,6E,6D
+	private registers2 = new RegisterSet(0, 0, 0, 0); // a2,b2,y2,z2. 69,67,68,66
 
 
 	constructor(program?: Uint8Array | string, callback?: (num: number) => void) {

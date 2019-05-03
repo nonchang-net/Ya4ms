@@ -20,23 +20,30 @@
 */
 
 import { States } from './Enums';
-import State from './State';
+import State, { DumpFormat } from './State';
 
 export default class GMC4 {
 
 	private readonly state: State;
+
+	// デバッグコールバック
+	private debugCallback?: (dumps: DumpFormat) => void;
 
 	constructor(code?: Uint8Array | string, callback?: (num: number) => void) {
 		// state初期化
 		this.state = new State(code, callback);
 	}
 
-	public SetCode(code: Uint8Array | string) {
+	public SetCode(code: Uint8Array | string): void {
 		this.state.SetCode(code);
 	}
 
-	public SetCallback(callback: (num: number) => void) {
+	public SetCallback(callback: (num: number) => void): void {
 		this.state.SetCallback(callback);
+	}
+
+	public SetDebugCallback(callback: (dumps: DumpFormat) => void): void {
+		this.debugCallback = callback;
 	}
 
 	// UNDONE: コード列実行
@@ -45,36 +52,45 @@ export default class GMC4 {
 
 		// ループ実行
 		while (true) {
+			this.DoDumpCallback();
 			const currentState: States = this.state.Step();
 
 			switch (currentState) {
 
 				case States.preWorking:
-					console.log(`state: preWorking`, this.state.Dump());
+					// console.log(`state: preWorking`, this.state.Dump());
 					break;
 
 				case States.programFinished:
-					console.log(`state: programFinished`, this.state.Dump());
+					// console.log(`state: programFinished`, this.state.Dump());
 					return;
-					break;
 
 				case States.programUndone:
-					console.log(`state: programUndone`, this.state.Dump());
+					// console.log(`state: programUndone`, this.state.Dump());
 					break;
-
 
 				case States.operandNotEnough:
 					throw new Error(`OperandNotEnough`);
-					break;
 
 				default:
+					this.DoDumpCallback();
 					throw new Error(`undefined state found: ${currentState}`);
 			}
 		}
 	}
 
+	public Reset(): void {
+		this.state.Reset();
+	}
+
 	public Dump(): any {
 		return this.state.Dump();
+	}
+
+	public DoDumpCallback(): void {
+		if (this.debugCallback) {
+			this.debugCallback(this.state.Dump());
+		}
 	}
 
 }
