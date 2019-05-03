@@ -23,11 +23,8 @@ export default class State {
 	// コールバック
 	private callback?: (num: number, arg?: number) => number;
 
-	// 実行カウンタ
-	private step: number = 0;
-
-	// フラグ JUMPや桁上がりなどでセットされ、JUMP命令が判断に利用する
-	private flag: boolean = false;
+	// ステートセット: 実行カウンタとフラグ
+	private stateSet: StateSet = new StateSet(0, false);
 
 	// レジスタ
 	private registers = new RegisterSet(0, 0, 0, 0); // a,b,y,z. 順に6F,6C,6E,6D
@@ -83,16 +80,9 @@ export default class State {
 		this.memory = new Uint8Array(memoryBuffer);
 
 		// その他の状態をクリア
-		this.step = 0;
-		this.flag = false;
-		this.registers.a = 0;
-		this.registers.b = 0;
-		this.registers.y = 0;
-		this.registers.z = 0;
-		this.registers2.a = 0;
-		this.registers2.b = 0;
-		this.registers2.y = 0;
-		this.registers2.z = 0;
+		this.stateSet.Reset();
+		this.registers.Reset();
+		this.registers2.Reset();
 	}
 
 	// ワンステップ実行
@@ -104,106 +94,106 @@ export default class State {
 				// キーコード入力
 				// - TODO: どうやって入力を仮想マシン側で受け取るか検討中
 				this.Call(Calls.KeyToARegister);
-				this.flag = true; // TODO:
+				this.stateSet.flag = true; // TODO:
 				break;
 
 			case Ops.SetSevenSegment: // 0x1: AO
 				this.Call(Calls.SetSevenSegment);
-				this.flag = true;
+				this.stateSet.flag = true;
 				break;
 
 			case Ops.ChangeABYZ: // 0x2: CH
 				this.Swap(this.registers.a, this.registers.b);
 				this.Swap(this.registers.y, this.registers.z);
-				this.flag = true;
+				this.stateSet.flag = true;
 				break;
 
 			case Ops.ChangeAY: // 0x3: CY:
 				this.Swap(this.registers.a, this.registers.y);
-				this.flag = true;
+				this.stateSet.flag = true;
 				break;
 
 			case Ops.ARegisterToYReferenceMemory: // 0x4: AM:
 				// UNDONE: 4bit丸めなくて大丈夫？ 検討中
 				this.memory[this.registers.y] = this.registers.a;
-				this.flag = true;
+				this.stateSet.flag = true;
 				break;
 
 			case Ops.YReferenceMemoryToARegister: // 0x5: MA:
 				this.registers.a = this.memory[this.registers.y];
-				this.flag = true;
+				this.stateSet.flag = true;
 				break;
 
 			case Ops.MemoryPlus: // 0x6: M+
 				this.registers.a += this.memory[this.registers.y];
-				this.flag = this.registers.a > 0xf;
+				this.stateSet.flag = this.registers.a > 0xf;
 				this.registers.a = Utils.RoundTo4Bit(this.registers.a);
 				break;
 
 			case Ops.MemoryMinus: // 0x7: M-
 				this.registers.a -= this.memory[this.registers.y];
-				this.flag = this.registers.a < 0;
+				this.stateSet.flag = this.registers.a < 0;
 				// 負のビットクリアはエラーになったので（知識不足、調査保留中）、取り急ぎ0x10足して4bitにroundする
 				this.registers.a = Utils.RoundTo4Bit(this.registers.a + 0x10);
 				break;
 
 			case Ops.StoreDirectNumberToARegister: // 0x8: TIA x
 				// programのオペランドが足りなければ失敗ステートを返す
-				if (this.program.length < this.step + 1 ) {
+				if (this.program.length < this.stateSet.step + 1 ) {
 					return States.operandNotEnough;
 				}
 				this.registers.a = this.GetNextCode();
-				this.flag = true;
+				this.stateSet.flag = true;
 				break;
 
 			case Ops.AddARegisterToDirectNumber: // 0x9: AIA
 				// programのオペランドが足りなければ失敗ステートを返す
-				if (this.program.length < this.step + 1 ) {
+				if (this.program.length < this.stateSet.step + 1 ) {
 					return States.operandNotEnough;
 				}
 				this.registers.a += this.GetNextCode();
-				this.flag = this.registers.a > 0xf;
+				this.stateSet.flag = this.registers.a > 0xf;
 				this.registers.a = Utils.RoundTo4Bit(this.registers.a);
 				break;
 
 			case Ops.StoreDirectNumberToYRegister:
 				// programのオペランドが足りなければ失敗ステートを返す
-				if (this.program.length < this.step + 1 ) {
+				if (this.program.length < this.stateSet.step + 1 ) {
 					return States.operandNotEnough;
 				}
 				this.registers.y = this.GetNextCode();
-				this.flag = true;
+				this.stateSet.flag = true;
 				break;
 
 			case Ops.AddYRegisterToDirectNumber:
 				// programのオペランドが足りなければ失敗ステートを返す
-				if (this.program.length < this.step + 1 ) {
+				if (this.program.length < this.stateSet.step + 1 ) {
 					return States.operandNotEnough;
 				}
 				this.registers.y += this.GetNextCode();
-				this.flag = this.registers.y > 0xf;
+				this.stateSet.flag = this.registers.y > 0xf;
 				this.registers.y = Utils.RoundTo4Bit(this.registers.y);
 				break;
 
 			case Ops.CompareDirectNumberToARegister: // 0xC: CIA
 				// programのオペランドが足りなければ失敗ステートを返す
-				if (this.program.length < this.step + 1 ) {
+				if (this.program.length < this.stateSet.step + 1 ) {
 					return States.operandNotEnough;
 				}
-				this.flag = this.registers.a !== this.GetNextCode();
+				this.stateSet.flag = this.registers.a !== this.GetNextCode();
 				break;
 
 			case Ops.CompareDirectNumberToYRegister: // 0xD: CIY
 				// programのオペランドが足りなければ失敗ステートを返す
-				if (this.program.length < this.step + 1 ) {
+				if (this.program.length < this.stateSet.step + 1 ) {
 					return States.operandNotEnough;
 				}
-				this.flag = this.registers.y !== this.GetNextCode();
+				this.stateSet.flag = this.registers.y !== this.GetNextCode();
 				break;
 
 			case Ops.CallService: // 0xE: CAL
 				// programのオペランドが足りなければ失敗ステートを返す
-				if (this.program.length < this.step + 1 ) {
+				if (this.program.length < this.stateSet.step + 1 ) {
 					return States.operandNotEnough;
 				}
 				await this.Call(this.GetNextCode());
@@ -212,33 +202,33 @@ export default class State {
 			case Ops.Jump: // 0xF: JUMP
 
 			// programのオペランドが足りなければ失敗ステートを返す
-				if (this.program.length < this.step + 2 ) {
+				if (this.program.length < this.stateSet.step + 2 ) {
 					return States.operandNotEnough;
 				}
 
 				const highAddress: number = this.GetNextCode();
 				const lowAddress: number = this.GetNextCode();
-				if (this.flag) {
+				if (this.stateSet.flag) {
 					const address: number = highAddress * 0x10 + lowAddress;
-					this.step = address;
+					this.stateSet.step = address;
 				}
 				break;
 		}
 
 		// 終了判定
-		if (this.program.length === this.step) {
+		if (this.program.length === this.stateSet.step) {
 			return States.programFinished;
 		}
 		return States.programUndone;
 	}
 
 	private GetNextCode(): number {
-		if (this.program.length === this.step) {
+		if (this.program.length === this.stateSet.step) {
 			// UNDONE: 正常なコードなら来ないはず？ オペランド数チェックは仮で入れたので、ここでは一応例外を出しておく
 			throw new Error('GetNextCode(): program was finished!');
 		}
-		const code: number = this.program[this.step];
-		this.step++;
+		const code: number = this.program[this.stateSet.step];
+		this.stateSet.step++;
 		return code;
 	}
 
@@ -254,7 +244,7 @@ export default class State {
 			case Calls.BeepShort: // SHTS
 			case Calls.BeepLong: // LONS
 				if (this.callback) {
-					this.flag = true;
+					this.stateSet.flag = true;
 					this.callback(code);
 				}
 				break;
@@ -262,7 +252,7 @@ export default class State {
 				// UNDONE: SUNDニーモニックはAレジスタの値をコールバック側に渡す必要がある。検討中……コールバック分けるか、default nullの引数渡しで済ませるか？
 			case Calls.PlaySound: // SUND
 				if (this.callback) {
-					this.flag = true;
+					this.stateSet.flag = true;
 					this.callback(code);
 				}
 				break;
@@ -270,14 +260,14 @@ export default class State {
 			case Calls.SetSevenSegment: // Ops 0x1: AO: 7セグ表示
 				// console.log(`Calls.SetSevenSegment entered.`);
 				if (this.callback) {
-					this.flag = true;
+					this.stateSet.flag = true;
 					this.callback(code, this.registers.a);
 				}
 				break;
 
 			case Calls.ReverseAllBitForARegister: // CMPL
 				this.registers.a = ~this.registers.a;
-				this.flag = true;
+				this.stateSet.flag = true;
 				break;
 
 			case Calls.SwapRegisterSet: // CHNG
@@ -285,11 +275,11 @@ export default class State {
 				this.Swap(this.registers.b, this.registers2.b);
 				this.Swap(this.registers.y, this.registers2.y);
 				this.Swap(this.registers.z, this.registers2.z);
-				this.flag = true;
+				this.stateSet.flag = true;
 				break;
 
 			case Calls.RightShiftForARegister: // SIFT
-				this.flag = Math.floor(this.registers.a % 2) === 1;
+				this.stateSet.flag = Math.floor(this.registers.a % 2) === 1;
 				// undone: 4bit考慮は不要？ ここで下位4bit分残して他をクリアしておくべきかも。
 				this.registers.a = Math.floor(this.registers.a / 2);
 				break;
@@ -323,8 +313,8 @@ export default class State {
 			this.registers,
 			this.registers2,
 			new StateSet(
-				this.step,
-				this.flag,
+				this.stateSet.step,
+				this.stateSet.flag,
 			),
 			this.program,
 			this.memory,
@@ -370,6 +360,12 @@ export class RegisterSet {
 		this.y = y;
 		this.z = z;
 	}
+	public Reset(): void {
+		this.a = 0;
+		this.b = 0;
+		this.y = 0;
+		this.z = 0;
+	}
 }
 
 export class StateSet {
@@ -378,5 +374,9 @@ export class StateSet {
 	constructor(step: number, flag: boolean) {
 		this.step = step;
 		this.flag = flag;
+	}
+	public Reset(): void {
+		this.step = 0;
+		this.flag = false;
 	}
 }
