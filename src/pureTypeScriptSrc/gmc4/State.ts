@@ -92,7 +92,7 @@ export default class State {
 	}
 
 	// ワンステップ実行
-	public Step(): number {
+	public async Step(): Promise<number> {
 
 		switch (this.GetNextCode()) {
 
@@ -203,7 +203,7 @@ export default class State {
 				if (this.program.length < this.step + 1 ) {
 					return States.operandNotEnough;
 				}
-				this.Call(this.GetNextCode());
+				await this.Call(this.GetNextCode());
 				break;
 
 			case Ops.Jump: // 0xF: JUMP
@@ -239,7 +239,7 @@ export default class State {
 		return code;
 	}
 
-	private Call(code: number): void {
+	private async Call(code: number) {
 		switch (code) {
 
 			// 表示・サウンド関係はそのままフラグ立ててコールバックを呼ぶ
@@ -283,7 +283,8 @@ export default class State {
 				this.registers.a = Math.floor(this.registers.a / 2);
 				break;
 
-			case 0xC: // 0xC: Timer TODO: - これどうしよう？ async/await案件か、それとも？
+			case Calls.Timer: // 0xC: Timer
+				await Utils.Sleep((this.registers.a+1) * 100);
 				break;
 
 			case 0xD: // 0xD: DSPR TODO:

@@ -48,12 +48,12 @@ export default class GMC4 {
 
 	// UNDONE: コード列実行
 	// - 音再生、LED変更などアウトプットに当たる要素はコールバックでシステムコールをそのまま渡す想定
-	public Run(): void {
+	public async Run() {
 
 		// ループ実行
 		while (true) {
 			this.DoDumpCallback();
-			const currentState: States = this.state.Step();
+			const currentState: States = await this.state.Step();
 
 			switch (currentState) {
 
