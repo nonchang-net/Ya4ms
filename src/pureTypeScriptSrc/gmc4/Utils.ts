@@ -7,4 +7,8 @@ export default class Utils {
 	public static RoundTo4Bit(num: number): number {
 		return num &= ~0xfff0;
 	}
+
+	public static async Sleep(msec: number) : Promise<any> {
+		return new Promise(resolve => setTimeout(resolve, msec));
+	}
 }

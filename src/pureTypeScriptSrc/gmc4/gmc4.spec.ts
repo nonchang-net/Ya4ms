@@ -56,7 +56,7 @@ describe('GMC4.ts', () => {
     expect(address).toEqual(0x23);
 	});
 
-	// note: Aレジスタに0xAを代入し、1を加算するコードをテスト
+	// Aレジスタに0xAを代入し、1を加算するコードをテスト
 	test(`run code for string`, () => {
 		var gmc4 = new GMC4('8A91');
 		gmc4.Run();
@@ -74,6 +74,32 @@ describe('GMC4.ts', () => {
 			new GMC4('8A91G');
 		}).toThrowError('parse error: invalid symbol at index 4. G')
 	});
+
+	// メモリ0x52に0x3を代入し、1を加算するコードをテスト
+	test(`run code for string`, () => {
+		var gmc4 = new GMC4(
+			'83' + // Aレジスタに3を代入
+			'A2' + // Yレジスタに2を代入。0x52番地を指定
+			'4' + // Aレジスタの内容を、Yレジスタが示すメモリにセット
+			'81' + // Aレジスタに1を代入
+			'6' // Aレジスタの内容を、Yレジスタが示すメモリに加算してAレジスタに戻す
+		);
+		gmc4.Run();
+		var dumped = gmc4.Dump();
+
+		// Aレジスタは0x4になっている
+		expect(dumped.registers.a).toEqual(0x4);
+		// Yレジスタは0x2になっている
+		expect(dumped.registers.y).toEqual(0x2);
+		// メモリの2番目は0x3になっている（加算されてない）
+		expect(dumped.memory[2]).toEqual(0x3);
+		// flagはM+(6)の実行の結果、桁上がりしていないのでfalseになっているはず
+    expect(dumped.states.flag).toEqual(false);
+	});
+
+	// Timerのブラウザテスト
+	// - 以下のコードで、Yレジスタが1,2,3と上がっていく
+	// '85A1ECA2ECA3EC'
 
 
 })

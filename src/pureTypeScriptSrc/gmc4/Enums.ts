@@ -42,7 +42,7 @@ export const enum Calls {
 	BeepShort, // サウンド: ショート音
 	BeepLong, // サウンド: ロング音
 	PlaySound, // サウンド: Arの音階の音
-	TIMR, // タイマー: (Ar+1)x0.1sec待つ
+	Timer = 0xC, // タイマー: (Ar+1)x0.1sec待つ
 	DSPR, // 表示: (E)→2進LED[0:3],(F)→2進LED[4:6]
 	DEMminus, // DEC((Y)-Ar)→(Y),Y--
 	DEMplus,  // DEC((Y)+Ar)→(Y),Y--
