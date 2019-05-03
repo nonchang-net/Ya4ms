@@ -1,8 +1,10 @@
 <template>
 	<div id="app">
-		<h1>Ya4ms: Yet Another 4bit Micon Simulator</h1>
-		<p>test 2019 0502 1948</p>
-		<hr />
+
+		<header>
+			<h1>Ya4ms: Yet Another 4bit Micon Simulator</h1>
+			<p>ver: 2019 0503 2203</p>
+		</header>
 
 		<div class="board">
 
@@ -26,17 +28,19 @@
 					<DumpView ref="dumpView" />
 				</div>
 
+				<div class="program">
+					<p>PROGRAM:</p>
+					<input type="text" ref="testCode" value="8A91" />
+				</div>
 
 			</div>
 
 			<div class="container-item">
-				<Buttons class="Buttons" ref="buttons" @click-number="onClickButton"/>
+				<Buttons class="Buttons" ref="buttons" @click-number="onClickNumber" @click-button="onClickButton"/>
 			</div>
 
 		</div>
 		<hr />
-		<input type="text" ref="testCode" value="8A91" />
-		<button ref="testRunButton" @click="testRunButtonClick"> test run </button>
 
 		<div class="sampleCodes">
 			<h2>サンプルコード</h2>
@@ -127,18 +131,33 @@ export default class App extends Vue {
 
 	}
 
-	public onClickButton(num: number) {
+	public onClickNumber(num: number) {
 		// console.log('App.vue: onClickButton() num:', num);
 		this.sevenSegment.set(num);
 	}
 
-	// テスト実行ボタン評価
-	public testRunButtonClick(): void {
-		// 実行
-		const code: string = (this.$refs.testCode as HTMLInputElement).value;
-		this.gmc4.SetCode(code);
-		this.gmc4.Reset();
-		this.gmc4.Run();
+	public onClickButton(type: 'ASET' | 'INCR' | 'RUN' | 'RESET') {
+		// console.log(`App.vue: onClickButton() ${type.toString()}`);
+		switch (type) {
+
+			case 'ASET':
+				throw new Error('TODO');
+
+			case 'INCR':
+				throw new Error('TODO');
+
+			case 'RUN':
+				const code: string = (this.$refs.testCode as HTMLInputElement).value;
+				this.gmc4.SetCode(code);
+				this.gmc4.Reset();
+				this.gmc4.Run();
+				break;
+
+			case 'RESET':
+				this.gmc4.SetCode('');
+				this.gmc4.Reset();
+				break;
+		}
 	}
 }
 </script>
@@ -157,16 +176,25 @@ export default class App extends Vue {
 	-moz-osx-font-smoothing: grayscale;
 	text-align: center;
 	color: #2c3e50;
-	margin-top: 60px;
+}
+
+header{
+	color : white;
+	background : rgb(53, 122, 32);
+	padding-bottom : 1em ;
+	padding-top : 1em ;
+	margin : 0 ;
 }
 
 .sampleCodes{
+	margin : 1em ;
 	font-size : 12px ;
 	text-align : left;
 	padding : 5px ; 
 	border : 1px solid gray;
 	border-radius : 5px ;
 	background : #eee;
+
 	h2{
 		font-size : 14px;
 		border-bottom : 1px solid gray ;
@@ -202,7 +230,6 @@ export default class App extends Vue {
 
 .leds{
 	display: flex;
-
 	width : 100%;
 	margin-left : 0 ; margin-right : 0 ;
 }
@@ -239,6 +266,24 @@ export default class App extends Vue {
 	transform : skewX(-5deg);
 }
 
+.program{
+	text-align : left;
+	font-weight : bold;
+	color : white;
+	margin-right : 1em ;
+
+	input{
+		width : 100%;
+		background : rgb(40, 109, 46);
+		border : none;
+		border-radius : 5px ;
+		padding : 5px ;
+		color : white;
+		font-weight : bold;
+		box-shadow: 3px 3px 2px rgba(0,0,0,0.4);
+	}
+}
+
 
 
 @media screen and ( max-width: 480px ) {
@@ -261,6 +306,10 @@ export default class App extends Vue {
 	}
 	h1, p{
 		font-size : 12px ;
+	}
+	.program{
+		margin-right : 0;
+		margin-bottom : 0.5em;
 	}
 }
 

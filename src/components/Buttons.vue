@@ -5,28 +5,28 @@
 			<Button class="myButton" text="D" @clicked='onClickedNumber(0xD)'/>
 			<Button class="myButton" text="E" @clicked='onClickedNumber(0xE)'/>
 			<Button class="myButton" text="F" @clicked='onClickedNumber(0xF)'/>
-			<Button class="myButton" text="A SET"/>
+			<Button class="myButton" text="A SET" @clicked='onClickButton("ASET")'/>
 		</div>
 		<div class="row">
 			<Button class="myButton" text="8" @clicked='onClickedNumber(0x8)'/>
 			<Button class="myButton" text="9" @clicked='onClickedNumber(0x9)'/>
 			<Button class="myButton" text="A" @clicked='onClickedNumber(0xA)'/>
 			<Button class="myButton" text="B" @clicked='onClickedNumber(0xB)'/>
-			<Button class="myButton" text="INCR"/>
+			<Button class="myButton" text="INCR" @clicked='onClickButton("INCR")'/>
 		</div>
 		<div class="row">
 			<Button class="myButton" text="4" @clicked='onClickedNumber(0x4)'/>
 			<Button class="myButton" text="5" @clicked='onClickedNumber(0x5)'/>
 			<Button class="myButton" text="6" @clicked='onClickedNumber(0x6)'/>
 			<Button class="myButton" text="7" @clicked='onClickedNumber(0x7)'/>
-			<Button class="myButton" text="RUN"/>
+			<Button class="myButton" text="RUN" @clicked='onClickButton("RUN")'/>
 		</div>
 		<div class="row">
 			<Button class="myButton" text="0" @clicked='onClickedNumber(0x0)'/>
 			<Button class="myButton" text="1" @clicked='onClickedNumber(0x1)'/>
 			<Button class="myButton" text="2" @clicked='onClickedNumber(0x2)'/>
 			<Button class="myButton" text="3" @clicked='onClickedNumber(0x3)'/>
-			<Button class="myButton" text="RESET"/>
+			<Button class="myButton" text="RESET" @clicked='onClickButton("RESET")'/>
 		</div>
 	</div>
 </template>
@@ -58,6 +58,17 @@ export default class Buttons extends Vue {
 		// this.LastSelected = num;
 		this.clickNumber(num);
 	}
+
+	@Emit()
+	public clickButton(type: 'ASET' | 'INCR' | 'RUN' | 'RESET') {
+		if (false) {
+			console.log('TODO: ignore warning: block is empty');
+		}
+	}
+	public onClickButton(type: 'ASET' | 'INCR' | 'RUN' | 'RESET') {
+		this.clickButton(type);
+	}
+
 }
 
 </script>

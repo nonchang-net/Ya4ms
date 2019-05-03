@@ -83,7 +83,7 @@ export default class State {
 		this.memory = new Uint8Array(memoryBuffer);
 
 		// その他の状態をクリア
-		this.step = States.preWorking;
+		this.step = 0;
 		this.flag = false;
 		this.registers.a = 0;
 		this.registers.b = 0;
