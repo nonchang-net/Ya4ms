@@ -6,7 +6,7 @@
 					Ar
 				</div>
 				<div class="value">
-					1
+					{{ a }}
 				</div>
 			</div>
 			<div class="row">
@@ -14,7 +14,7 @@
 					Br
 				</div>
 				<div class="value">
-					1
+					{{ b }}
 				</div>
 			</div>
 			<div class="row">
@@ -22,7 +22,7 @@
 					Yr
 				</div>
 				<div class="value">
-					1
+					{{ y }}
 				</div>
 			</div>
 			<div class="row">
@@ -30,7 +30,7 @@
 					Zr
 				</div>
 				<div class="value">
-					1
+					{{ z }}
 				</div>
 			</div>
 		</div>
@@ -41,7 +41,7 @@
 					A'
 				</div>
 				<div class="value">
-					1
+					{{ a2 }}
 				</div>
 			</div>
 			<div class="row">
@@ -49,7 +49,7 @@
 					B'
 				</div>
 				<div class="value">
-					1
+					{{ b2 }}
 				</div>
 			</div>
 			<div class="row">
@@ -57,7 +57,7 @@
 					Y'
 				</div>
 				<div class="value">
-					1
+					{{ y2 }}
 				</div>
 			</div>
 			<div class="row">
@@ -65,12 +65,61 @@
 					Z'
 				</div>
 				<div class="value">
-					1
+					{{ z2 }}
 				</div>
 			</div>
 		</div>
 	</div>
 </template>
+
+
+<script lang="ts">
+import { Component, Prop, Vue } from 'vue-property-decorator';
+import { DumpFormat } from '../../pureTypeScriptSrc/gmc4/State';
+
+@Component
+export default class DumpView extends Vue {
+
+	private dumps?: DumpFormat | null = null;
+
+	public get a(): string {
+		return this.dumps == null ? '-' : this.dumps.registers.a.toString(16);
+	}
+
+	public get b(): string {
+		return this.dumps == null ? '-' : this.dumps.registers.b.toString(16);
+	}
+
+	public get y(): string {
+		return this.dumps == null ? '-' : this.dumps.registers.y.toString(16);
+	}
+
+	public get z(): string {
+		return this.dumps == null ? '-' : this.dumps.registers.z.toString(16);
+	}
+
+	public get a2(): string {
+		return this.dumps == null ? '-' : this.dumps.registers2.a.toString(16);
+	}
+
+	public get b2(): string {
+		return this.dumps == null ? '-' : this.dumps.registers2.b.toString(16);
+	}
+
+	public get y2(): string {
+		return this.dumps == null ? '-' : this.dumps.registers2.y.toString(16);
+	}
+
+	public get z2(): string {
+		return this.dumps == null ? '-' : this.dumps.registers2.z.toString(16);
+	}
+
+	public Set(dumps: DumpFormat): void {
+		this.dumps = dumps;
+	}
+}
+
+</script>
 
 <style lang="scss">
 

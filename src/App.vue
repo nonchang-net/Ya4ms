@@ -21,7 +21,7 @@
 					<SevenSegment ref="sevenSegment" class="SevenSegment"/>
 				</div>
 
-				<DumpView />
+				<DumpView ref="dumpView" />
 
 			</div>
 
@@ -31,7 +31,8 @@
 
 		</div>
 		<hr />
-		<p>test 20190421 1931</p>
+		<input type="text" ref="testCode" value="8A91" />
+		<button ref="testRunButton" @click="testRunButtonClick"> test run </button>
 	</div>
 </template>
 
@@ -84,14 +85,25 @@ export default class App extends Vue {
 		// 7セグ表示を初期化
 		this.sevenSegment.set(0x0);
 
-		// 初期状態をdump、画面出力
-		// this.DumpView(this.gmc4.Dump());
+		// dumpコールバック設定
+		this.gmc4.SetDebugCallback((dumps) => {
+			(this.$refs.dumpView as any).Set(dumps);
+		});
 
 	}
 
 	public onClickButton(num: number) {
 		// console.log('App.vue: onClickButton() num:', num);
 		this.sevenSegment.set(num);
+	}
+
+	// テスト実行ボタン評価
+	public testRunButtonClick(): void {
+		// 実行
+		const code: string = (this.$refs.testCode as HTMLInputElement).value;
+		this.gmc4.SetCode(code);
+		this.gmc4.Reset();
+		this.gmc4.Run();
 	}
 }
 </script>
