@@ -1,4 +1,4 @@
-/*tslint:disable:no-bitwise member-ordering*/
+/*tslint:disable:no-bitwise member-ordering max-classes-per-file*/
 
 /*
 
@@ -13,11 +13,12 @@ import Utils from './Utils';
 
 // GMC4の内部状態を示すクラス
 export default class State {
+
 	// プログラム配列
-	private program: Uint8Array;
+	private program: Uint8Array = new Uint8Array();
 
 	// メモリ
-	private memory: Uint8Array;
+	private memory: Uint8Array = new Uint8Array();
 
 	// コールバック
 	private callback?: (num: number) => void;
@@ -29,17 +30,24 @@ export default class State {
 	private flag: boolean = false;
 
 	// レジスタ
-	private a: number = 0; // 6F
-	private b: number = 0; // 6C
-	private y: number = 0; // 6E
-	private z: number = 0; // 6D
-	private a2: number = 0; // 69
-	private b2: number = 0; // 67
-	private y2: number = 0; // 68
-	private z2: number = 0; // 66
+	private registers = new RegisterSet(0,0,0,0); // a,b,y,z. 順に6F,6C,6E,6D
+	private registers2 = new RegisterSet(0,0,0,0); // a2,b2,y2,z2. 69,67,68,66
 
-	constructor(program: Uint8Array | string, callback?: (num: number) => void) {
 
+	constructor(program?: Uint8Array | string, callback?: (num: number) => void) {
+
+		// ショートカット: new時に渡されてたらそのまま初期化する（実行はメソッド分ける）
+		if (program) {
+			this.SetCode(program);
+		}
+		if (callback) {
+			this.SetCallback(callback);
+		}
+
+		this.Reset();
+	}
+
+	public SetCode(program: Uint8Array | string) {
 		if ('string' === typeof program) {
 			// 文字列から読み込み
 			const buf = new ArrayBuffer(program.length);
@@ -55,8 +63,14 @@ export default class State {
 		} else {
 			this.program = program;
 		}
+	}
 
+	public SetCallback(callback: (num: number) => void) {
 		this.callback = callback;
+	}
+
+	// 全ての状態をクリアする
+	public Reset(): void {
 
 		// メモリ初期化
 		// - gmc4は4bitx16の8バイトのメモリを持つ
@@ -64,21 +78,17 @@ export default class State {
 		const memoryBuffer = new ArrayBuffer(16);
 		this.memory = new Uint8Array(memoryBuffer);
 
-		this.Reset();
-	}
-
-	// 全ての状態をクリアする
-	public Reset(): void {
+		// その他の状態をクリア
 		this.step = States.preWorking;
 		this.flag = false;
-		this.a = 0;
-		this.b = 0;
-		this.y = 0;
-		this.z = 0;
-		this.a2 = 0;
-		this.b2 = 0;
-		this.y2 = 0;
-		this.z2 = 0;
+		this.registers.a = 0;
+		this.registers.b = 0;
+		this.registers.y = 0;
+		this.registers.z = 0;
+		this.registers2.a = 0;
+		this.registers2.b = 0;
+		this.registers2.y = 0;
+		this.registers2.z = 0;
 	}
 
 	// ワンステップ実行
@@ -100,38 +110,38 @@ export default class State {
 				break;
 
 			case Ops.ChangeABYZ: // 0x2: CH
-				this.Swap(this.a, this.b);
-				this.Swap(this.y, this.z);
+				this.Swap(this.registers.a, this.registers.b);
+				this.Swap(this.registers.y, this.registers.z);
 				this.flag = true;
 				break;
 
 			case Ops.ChangeAY: // 0x3: CY:
-				this.Swap(this.a, this.y);
+				this.Swap(this.registers.a, this.registers.y);
 				this.flag = true;
 				break;
 
 			case Ops.ARegisterToYReferenceMemory: // 0x4: AM:
 				// UNDONE: 4bit丸めなくて大丈夫？ 検討中
-				this.memory[this.y] = this.a;
+				this.memory[this.registers.y] = this.registers.a;
 				this.flag = true;
 				break;
 
 			case Ops.YReferenceMemoryToARegister: // 0x5: MA:
-				this.a = this.memory[this.y];
+				this.registers.a = this.memory[this.registers.y];
 				this.flag = true;
 				break;
 
 			case Ops.MemoryPlus: // 0x6: M+
-				this.a += this.memory[this.y];
-				this.flag = this.a > 0xf;
-				this.a = Utils.RoundTo4Bit(this.a);
+				this.registers.a += this.memory[this.registers.y];
+				this.flag = this.registers.a > 0xf;
+				this.registers.a = Utils.RoundTo4Bit(this.registers.a);
 				break;
 
 			case Ops.MemoryMinus: // 0x7: M-
-				this.a -= this.memory[this.y];
-				this.flag = this.a < 0;
+				this.registers.a -= this.memory[this.registers.y];
+				this.flag = this.registers.a < 0;
 				// 負のビットクリアはエラーになったので（知識不足、調査保留中）、取り急ぎ0x10足して4bitにroundする
-				this.a = Utils.RoundTo4Bit(this.a + 0x10);
+				this.registers.a = Utils.RoundTo4Bit(this.registers.a + 0x10);
 				break;
 
 			case Ops.StoreDirectNumberToARegister: // 0x8: TIA x
@@ -139,7 +149,7 @@ export default class State {
 				if (this.program.length < this.step + 1 ) {
 					return States.operandNotEnough;
 				}
-				this.a = this.GetNextCode();
+				this.registers.a = this.GetNextCode();
 				this.flag = true;
 				break;
 
@@ -148,9 +158,9 @@ export default class State {
 				if (this.program.length < this.step + 1 ) {
 					return States.operandNotEnough;
 				}
-				this.a += this.GetNextCode();
-				this.flag = this.a > 0xf;
-				this.a = Utils.RoundTo4Bit(this.a);
+				this.registers.a += this.GetNextCode();
+				this.flag = this.registers.a > 0xf;
+				this.registers.a = Utils.RoundTo4Bit(this.registers.a);
 				break;
 
 			case Ops.StoreDirectNumberToYRegister:
@@ -158,7 +168,7 @@ export default class State {
 				if (this.program.length < this.step + 1 ) {
 					return States.operandNotEnough;
 				}
-				this.y = this.GetNextCode();
+				this.registers.y = this.GetNextCode();
 				this.flag = true;
 				break;
 
@@ -167,9 +177,9 @@ export default class State {
 				if (this.program.length < this.step + 1 ) {
 					return States.operandNotEnough;
 				}
-				this.y += this.GetNextCode();
-				this.flag = this.y > 0xf;
-				this.y = Utils.RoundTo4Bit(this.y);
+				this.registers.y += this.GetNextCode();
+				this.flag = this.registers.y > 0xf;
+				this.registers.y = Utils.RoundTo4Bit(this.registers.y);
 				break;
 
 			case Ops.CompareDirectNumberToARegister: // 0xC: CIA
@@ -177,7 +187,7 @@ export default class State {
 				if (this.program.length < this.step + 1 ) {
 					return States.operandNotEnough;
 				}
-				this.flag = this.a !== this.GetNextCode();
+				this.flag = this.registers.a !== this.GetNextCode();
 				break;
 
 			case Ops.CompareDirectNumberToYRegister: // 0xD: CIY
@@ -185,7 +195,7 @@ export default class State {
 				if (this.program.length < this.step + 1 ) {
 					return States.operandNotEnough;
 				}
-				this.flag = this.y !== this.GetNextCode();
+				this.flag = this.registers.y !== this.GetNextCode();
 				break;
 
 			case Ops.CallService: // 0xE: CAL
@@ -255,25 +265,25 @@ export default class State {
 				break;
 
 			case Calls.ReverseAllBitForARegister: // CMPL
-				this.a = ~this.a;
+				this.registers.a = ~this.registers.a;
 				this.flag = true;
 				break;
 
 			case Calls.SwapRegisterSet: // CHNG
-				this.Swap(this.a, this.a2);
-				this.Swap(this.b, this.b2);
-				this.Swap(this.y, this.y2);
-				this.Swap(this.z, this.z2);
+				this.Swap(this.registers.a, this.registers2.a);
+				this.Swap(this.registers.b, this.registers2.b);
+				this.Swap(this.registers.y, this.registers2.y);
+				this.Swap(this.registers.z, this.registers2.z);
 				this.flag = true;
 				break;
 
 			case Calls.RightShiftForARegister: // SIFT
-				this.flag = Math.floor(this.a % 2) === 1;
+				this.flag = Math.floor(this.registers.a % 2) === 1;
 				// undone: 4bit考慮は不要？ ここで下位4bit分残して他をクリアしておくべきかも。
-				this.a = Math.floor(this.a / 2);
+				this.registers.a = Math.floor(this.registers.a / 2);
 				break;
 
-			case 0xC: // 0xC: Timer TODO:
+			case 0xC: // 0xC: Timer TODO: - これどうしよう？ async/await案件か、それとも？
 				break;
 
 			case 0xD: // 0xD: DSPR TODO:
@@ -296,25 +306,65 @@ export default class State {
 	// デバッグダンプ
 	// - 検討中。とりあえずテストできるようにフルセットjsonで返してみる
 	// - TODO: vue側ビルドに含めたくない。C#のpartial的な方法ないかな。あとで調査
-	public Dump(): any {
-		return {
-			registers: {
-				a: this.a,
-				b: this.b,
-				y: this.y,
-				z: this.z,
-				a2: this.a2,
-				b2: this.b2,
-				y2: this.y2,
-				z2: this.z2,
-			},
-			states: {
-				step: this.step,
-				flag: this.flag,
-			},
-			program: this.program,
-			memory: this.memory,
-		};
+	public Dump(): DumpFormat {
+		return new DumpFormat(
+			this.registers,
+			this.registers2,
+			new StateSet(
+				this.step,
+				this.flag,
+			),
+			this.program,
+			this.memory,
+		);
+	}
+
+}
+
+
+// デバッグ表示用のDumpフォーマット
+// - TODO: この先はクラス分けたい感じ
+// - UNDONE: ロジック部分もこのクラスに統一していったほうがいいかも。検討中
+
+export class DumpFormat {
+	public registers: RegisterSet;
+	public registers2: RegisterSet;
+	public states: StateSet;
+	public program: Uint8Array;
+	public memory: Uint8Array;
+	constructor(
+		registerSet1: RegisterSet,
+		registerSet2: RegisterSet,
+		stateSet: StateSet,
+		program: Uint8Array,
+		memory: Uint8Array,
+	) {
+		this.registers = registerSet1;
+		this.registers2 = registerSet2;
+		this.states = stateSet;
+		this.program = program;
+		this.memory = memory;
 	}
 }
 
+export class RegisterSet {
+	public a: number;
+	public b: number;
+	public y: number;
+	public z: number;
+	constructor(a: number, b: number, y: number, z: number) {
+		this.a = a;
+		this.b = b;
+		this.y = y;
+		this.z = z;
+	}
+}
+
+export class StateSet {
+	public step: number;
+	public flag: boolean;
+	constructor(step: number, flag: boolean) {
+		this.step = step;
+		this.flag = flag;
+	}
+}
