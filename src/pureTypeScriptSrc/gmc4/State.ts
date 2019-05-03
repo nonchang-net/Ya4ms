@@ -312,10 +312,7 @@ export default class State {
 		return new DumpFormat(
 			this.registers,
 			this.registers2,
-			new StateSet(
-				this.stateSet.step,
-				this.stateSet.flag,
-			),
+			this.stateSet,
 			this.program,
 			this.memory,
 		);
