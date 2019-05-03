@@ -75,7 +75,7 @@
 				</div>
 			</div>
 
-			<div> : : : </div>
+			<div style="width : 30px ;"/>
 
 			<div class="row">
 				<div class="header">
