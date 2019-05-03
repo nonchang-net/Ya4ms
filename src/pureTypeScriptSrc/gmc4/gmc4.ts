@@ -10,6 +10,7 @@
 
 import { States } from './Enums';
 import State, { DumpFormat } from './State';
+import Utils from './Utils';
 
 export default class GMC4 {
 
@@ -40,7 +41,21 @@ export default class GMC4 {
 	public async Run() {
 
 		// ループ実行
+
+		// DEBUG: 無限ループ停止用設定
+		const TEST_DEBUG_STEP_MAX = 1000;
+		let TEST_DEBUG_STEP_COUNT = 0;
+
 		while (true) {
+
+			// DEBUG: 各シーケンスで0.1秒待つ
+			await Utils.Sleep(100);
+
+			TEST_DEBUG_STEP_COUNT++;
+			if (TEST_DEBUG_STEP_MAX < TEST_DEBUG_STEP_COUNT) {
+				throw new Error(`DEBUG: MAX Step reached.`);
+			}
+
 			this.DoDumpCallback();
 			const currentState: States = await this.state.Step();
 

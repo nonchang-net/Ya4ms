@@ -57,9 +57,9 @@ describe('GMC4.ts', () => {
 	});
 
 	// Aレジスタに0xAを代入し、1を加算するコードをテスト
-	test(`run code for string`, () => {
+	test(`run code for string`, async () => {
 		var gmc4 = new GMC4('8A91');
-		gmc4.Run();
+		await gmc4.Run();
 		var dumped = gmc4.Dump();
 
 		// Aレジスタは0xBになっているはず
@@ -76,7 +76,7 @@ describe('GMC4.ts', () => {
 	});
 
 	// メモリ0x52に0x3を代入し、1を加算するコードをテスト
-	test(`run code for string`, () => {
+	test(`run code for string`, async () => {
 		var gmc4 = new GMC4(
 			'83' + // Aレジスタに3を代入
 			'A2' + // Yレジスタに2を代入。0x52番地を指定
@@ -84,7 +84,7 @@ describe('GMC4.ts', () => {
 			'81' + // Aレジスタに1を代入
 			'6' // Aレジスタの内容を、Yレジスタが示すメモリに加算してAレジスタに戻す
 		);
-		gmc4.Run();
+		await gmc4.Run();
 		var dumped = gmc4.Dump();
 
 		// Aレジスタは0x4になっている
