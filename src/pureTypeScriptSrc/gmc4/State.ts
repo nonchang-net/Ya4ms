@@ -21,7 +21,7 @@ export default class State {
 	private memory: Uint8Array = new Uint8Array();
 
 	// コールバック
-	private callback?: (num: number) => void;
+	private callback?: (num: number, arg?: number) => number;
 
 	// 実行カウンタ
 	private step: number = 0;
@@ -34,7 +34,7 @@ export default class State {
 	private registers2 = new RegisterSet(0, 0, 0, 0); // a2,b2,y2,z2. 69,67,68,66
 
 
-	constructor(program?: Uint8Array | string, callback?: (num: number) => void) {
+	constructor(program?: Uint8Array | string, callback?: (num: number, arg?: number) => number) {
 
 		// ショートカット: new時に渡されてたらそのまま初期化する（実行はメソッド分ける）
 		if (program) {
@@ -53,6 +53,10 @@ export default class State {
 			const buf = new ArrayBuffer(program.length);
 			const view = new Uint8Array(buf);
 			for (let i = 0; i < program.length; i++) {
+				// 読みやすく書けるよう、半角スペースは無視する
+				if (program[i] === ' ') {
+					continue;
+				}
 				const nible: number = parseInt(program[i], 16);
 				if (isNaN(nible)) {
 					throw Error(`parse error: invalid symbol at index ${i}. ${program[i]}`);
@@ -65,7 +69,7 @@ export default class State {
 		}
 	}
 
-	public SetCallback(callback: (num: number) => void) {
+	public SetCallback(callback: (num: number, arg?: number) => number) {
 		this.callback = callback;
 	}
 
@@ -104,8 +108,7 @@ export default class State {
 				break;
 
 			case Ops.SetSevenSegment: // 0x1: AO
-				// - TODO: どうやってjavascript側にAレジスタの内容を渡すか検討中
-				this.Call(Calls.KeyToARegister);
+				this.Call(Calls.SetSevenSegment);
 				this.flag = true;
 				break;
 
@@ -264,6 +267,14 @@ export default class State {
 				}
 				break;
 
+			case Calls.SetSevenSegment: // Ops 0x1: AO: 7セグ表示
+				// console.log(`Calls.SetSevenSegment entered.`);
+				if (this.callback) {
+					this.flag = true;
+					this.callback(code, this.registers.a);
+				}
+				break;
+
 			case Calls.ReverseAllBitForARegister: // CMPL
 				this.registers.a = ~this.registers.a;
 				this.flag = true;
@@ -284,7 +295,7 @@ export default class State {
 				break;
 
 			case Calls.Timer: // 0xC: Timer
-				await Utils.Sleep((this.registers.a+1) * 100);
+				await Utils.Sleep((this.registers.a + 1) * 100);
 				break;
 
 			case 0xD: // 0xD: DSPR TODO:

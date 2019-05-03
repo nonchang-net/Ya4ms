@@ -2,20 +2,9 @@
 
 # WIP: GMC-4 in typescript
 
-
 ## 概要
 
-- GMC-4の挙動を模したシミュレータを実装することを目標としています。
-
-## やらないこと
-
-- Uint4Arrayの検討はしない
-	- ググってみるとラッパー的な実装はありそう？ (深追いはしてない)
-	- 自前で作るとしてもint8なarrayにパックできなくはなさそう？
-	- Uint8Arrayはブラウザネイティブ実装だから早いというもののようだし、パックしたところで速度を稼げるかどうか疑問。
-	- そもそも読みやすいシミュレータを練習で書く方に意識が向いているので、効率は優先順位高くない気分。
-	- どうせ4bitマイコンだし、コードブロックの格納にUint8Arrayを使う以外では、TypeScriptのnumber型をそのまま使う方向で。
-
+- GMC-4の挙動を模したシミュレータの実装を目標としています。
 
 */
 
@@ -29,7 +18,7 @@ export default class GMC4 {
 	// デバッグコールバック
 	private debugCallback?: (dumps: DumpFormat) => void;
 
-	constructor(code?: Uint8Array | string, callback?: (num: number) => void) {
+	constructor(code?: Uint8Array | string, callback?: (num: number) => number) {
 		// state初期化
 		this.state = new State(code, callback);
 	}
@@ -38,7 +27,7 @@ export default class GMC4 {
 		this.state.SetCode(code);
 	}
 
-	public SetCallback(callback: (num: number) => void): void {
+	public SetCallback(callback: (num: number, arg?: number) => number): void {
 		this.state.SetCallback(callback);
 	}
 

@@ -2,7 +2,9 @@
 
 # レジスタ・メモリ状況の表示UI
 
-- ぶっちゃけもっといい書き方があると思うけど改修保留中
+- 絶対もっといい書き方があるはずw
+- まあ、動いてるので改修保留中。
+	- 多分配列定義からview組み立てるようなコードかけばスッキリするんですかね。。ちょっと値の埋め込み周りでつまづいたので、後回し中です。
 
 -->
 <template>
@@ -294,7 +296,7 @@ export default class DumpView extends Vue {
 
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 
 .dump{
 
@@ -302,18 +304,17 @@ export default class DumpView extends Vue {
 		display : flex;
 		flex-direction : row;
 		margin : 5px;
-		border : 1px solid gray;
-		border-radius : 10px ;
-		font-weight : bold ;
 	}
 
 	.row{
 		display : flex;
 		flex-direction : column;
-		// padding : 5px ;
-		// margin : 10px;
-		border : 1px solid gray;
+		margin : 2px ;
 		border-radius : 10px ;
+
+		font-size : 12px ;
+		font-weight : bold ;
+
 		.header{
 			background : rgb(15, 94, 41);
 			color : white;
@@ -323,4 +324,16 @@ export default class DumpView extends Vue {
 		}
 	}
 }
+
+
+@media screen and ( max-width: 480px ) {
+	.dump{
+		.row{
+			font-size : 10px;
+			font-weight : normal ;
+		}
+	}
+}
+
+
 </style>
