@@ -2,7 +2,7 @@
 	<div id="app">
 		<header>
 			<h1>Ya4ms: Yet Another 4bit Micon Simulator</h1>
-			<p>ver: 2019 0503 2203</p>
+			<p>ver: 2019 0504 1948</p>
 		</header>
 
 		<div class="board">
@@ -71,7 +71,7 @@ import DumpView from './components/DumpView/DumpView.vue';
 import GMC4 from './pureTypeScriptSrc/gmc4/gmc4';
 import { Calls } from './pureTypeScriptSrc/gmc4/Enums';
 
-import MyTest from './pureTypeScriptSrc/MyTest';
+import Beep from './pureTypeScriptSrc/Sound/Beep';
 
 @Component({
 	components: {
@@ -85,6 +85,7 @@ export default class App extends Vue {
 
 	private sevenSegment: SevenSegment;
 	private gmc4: GMC4;
+	private beep: Beep;
 
 	constructor() {
 		super();
@@ -95,6 +96,7 @@ export default class App extends Vue {
 		this.sevenSegment = this.$refs.sevenSegment as SevenSegment;
 
 		this.gmc4 = new GMC4();
+		this.beep = new Beep();
 	}
 
 	public mounted() {
@@ -136,13 +138,19 @@ export default class App extends Vue {
 	}
 
 	public onClickButton(type: 'ASET' | 'INCR' | 'RUN' | 'RESET') {
+
+		this.beep.PlayShort();
+
 		// console.log(`App.vue: onClickButton() ${type.toString()}`);
 		switch (type) {
+
 			case 'ASET':
-				throw new Error('TODO');
+				console.log('TODO');
+				break;
 
 			case 'INCR':
-				throw new Error('TODO');
+				console.log('TODO');
+				break;
 
 			case 'RUN':
 				const code: string = (this.$refs.testCode as HTMLInputElement).value;
