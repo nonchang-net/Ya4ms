@@ -21,7 +21,7 @@ export default class State {
 	private memory: Uint8Array = new Uint8Array();
 
 	// コールバック
-	private callback?: (num: number, arg?: number) => number;
+	private callback?: (num: number, arg?: number) => Promise<number>;
 
 	// ステートセット: 実行カウンタとフラグ
 	private stateSet: StateSet = new StateSet(0, false);
@@ -31,7 +31,7 @@ export default class State {
 	private registers2 = new RegisterSet(0, 0, 0, 0); // a2,b2,y2,z2. 69,67,68,66
 
 
-	constructor(program?: Uint8Array | string, callback?: (num: number, arg?: number) => number) {
+	constructor(program?: Uint8Array | string, callback?: (num: number, arg?: number) => Promise<number>) {
 
 		// ショートカット: new時に渡されてたらそのまま初期化する（実行はメソッド分ける）
 		if (program) {
@@ -66,7 +66,7 @@ export default class State {
 		}
 	}
 
-	public SetCallback(callback: (num: number, arg?: number) => number) {
+	public SetCallback(callback: (num: number, arg?: number) => Promise<number>) {
 		this.callback = callback;
 	}
 
@@ -245,15 +245,14 @@ export default class State {
 			case Calls.BeepLong: // LONS
 				if (this.callback) {
 					this.stateSet.flag = true;
-					this.callback(code);
+					await this.callback(code);
 				}
 				break;
 
-				// UNDONE: SUNDニーモニックはAレジスタの値をコールバック側に渡す必要がある。検討中……コールバック分けるか、default nullの引数渡しで済ませるか？
 			case Calls.PlaySound: // SUND
 				if (this.callback) {
 					this.stateSet.flag = true;
-					this.callback(code);
+					await this.callback(code, this.registers.a);
 				}
 				break;
 
@@ -261,7 +260,7 @@ export default class State {
 				// console.log(`Calls.SetSevenSegment entered.`);
 				if (this.callback) {
 					this.stateSet.flag = true;
-					this.callback(code, this.registers.a);
+					await this.callback(code, this.registers.a);
 				}
 				break;
 
@@ -351,12 +350,14 @@ export class RegisterSet {
 	public b: number;
 	public y: number;
 	public z: number;
+
 	constructor(a: number, b: number, y: number, z: number) {
 		this.a = a;
 		this.b = b;
 		this.y = y;
 		this.z = z;
 	}
+
 	public Reset(): void {
 		this.a = 0;
 		this.b = 0;
@@ -366,14 +367,27 @@ export class RegisterSet {
 }
 
 export class StateSet {
-	public step: number;
+	public step: number; // 実行ステップ
 	public flag: boolean;
-	constructor(step: number, flag: boolean) {
+	public stepMode: boolean; // RUN時フラグ: ステップ実行モードかどうか
+	public silentMode: boolean; // RUN時フラグ: サイレント実行モードかどうか
+
+	constructor(
+		step: number,
+		flag: boolean,
+		stepMode: boolean = false,
+		silentMode: boolean = false,
+	) {
 		this.step = step;
 		this.flag = flag;
+		this.stepMode = stepMode;
+		this.silentMode = silentMode;
 	}
+
 	public Reset(): void {
 		this.step = 0;
 		this.flag = false;
+		this.stepMode = false;
+		this.silentMode = false;
 	}
 }

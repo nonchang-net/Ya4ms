@@ -93,6 +93,22 @@
 					{{ flag }}
 				</div>
 			</div>
+			<div class="row">
+				<div class="header">
+					silent
+				</div>
+				<div class="value">
+					{{ silent }}
+				</div>
+			</div>
+			<div class="row">
+				<div class="header">
+					runMode
+				</div>
+				<div class="value">
+					{{ runMode }}
+				</div>
+			</div>
 		</div>
 
 		<div class="column">
@@ -282,6 +298,14 @@ export default class DumpView extends Vue {
 
 	public get flag(): string {
 		return this.dumps == null ? '-' : this.dumps.states.flag.toString();
+	}
+
+	public get silent(): string {
+		return this.dumps == null ? '-' : this.dumps.states.silentMode.toString();
+	}
+
+	public get runMode(): string {
+		return this.dumps == null ? '-' : this.dumps.states.stepMode ? 'STEP' : 'RUN';
 	}
 
 	public get memory(): Uint8Array {

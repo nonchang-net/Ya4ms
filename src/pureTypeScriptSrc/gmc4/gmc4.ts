@@ -19,7 +19,7 @@ export default class GMC4 {
 	// デバッグコールバック
 	private debugCallback?: (dumps: DumpFormat) => void;
 
-	constructor(code?: Uint8Array | string, callback?: (num: number) => number) {
+	constructor(code?: Uint8Array | string, callback?: (num: number) => Promise<number>) {
 		// state初期化
 		this.state = new State(code, callback);
 	}
@@ -28,7 +28,7 @@ export default class GMC4 {
 		this.state.SetCode(code);
 	}
 
-	public SetCallback(callback: (num: number, arg?: number) => number): void {
+	public SetCallback(callback: (num: number, arg?: number) => Promise<number>): void {
 		this.state.SetCallback(callback);
 	}
 

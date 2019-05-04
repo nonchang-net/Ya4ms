@@ -110,7 +110,7 @@ export default class App extends Vue {
 		this.sevenSegment.set(0x0);
 
 		// コールバック定義
-		this.gmc4.SetCallback((arg1, arg2?) => {
+		this.gmc4.SetCallback( async (arg1, arg2?) => {
 			// console.log(`gmc4.callback called: ${arg1} ${arg2}`);
 
 			switch (arg1) {
@@ -119,6 +119,22 @@ export default class App extends Vue {
 						throw new Error(`[Opcode 0x1: AO] missing argument error: Calls.SetSevenSegmentには第二引数が必要です`);
 					}
 					this.sevenSegment.set(arg2);
+					return 0;
+
+				case Calls.BeepShort:
+					await this.beep.PlayShort();
+					return 0;
+
+				case Calls.BeepLong:
+					await this.beep.PlayLong();
+					return 0;
+
+				case Calls.BeepEnd:
+					await this.beep.PlayEnd();
+					return 0;
+
+				case Calls.BeepError:
+					await this.beep.PlayError();
 					return 0;
 
 				// TODO: 他のサービスはまだ。
