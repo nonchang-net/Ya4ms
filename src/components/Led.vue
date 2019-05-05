@@ -1,6 +1,6 @@
 <template>
 	<div class="Led">
-		<div class="inner">
+		<div class="inner" v-show="state == true">
 		</div>
 	</div>
 </template>
@@ -10,7 +10,12 @@ import { Component, Prop, Vue } from 'vue-property-decorator';
 
 @Component
 export default class Led extends Vue {
-  @Prop() private state!: boolean;
+	@Prop() private state!: boolean;
+
+	constructor() {
+		super();
+		console.log(`state: ${this.state}`);
+	}
 }
 
 </script>
@@ -33,15 +38,13 @@ div.Led{
 	border-radius: ($baseWidth/2);
 	box-shadow: $shadowOffset $shadowOffset $shadowRadius rgba(0,0,0,0.4);
 	background : gray;
+	.inner{
+		margin : $innerMargin ;
+		width : ($innerWidth);
+		height : ($innerWidth);
+		border-radius: ($innerWidth / 2);
+		background: rgba(255, 33, 33, 0.9);
+	}
 }
-
-div.Led div.inner{
-	margin : $innerMargin ;
-	width : ($innerWidth);
-	height : ($innerWidth);
-	border-radius: ($innerWidth / 2);
-	background: rgba(255, 33, 33, 0.9);
-}
-
 
 </style>

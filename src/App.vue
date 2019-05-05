@@ -2,33 +2,39 @@
 	<div id="app">
 		<header>
 			<h1>Ya4ms: Yet Another 4bit Micon Simulator</h1>
-			<p>ver: 2019 0504 1948</p>
+			<p>ver: 2019 0505 1832</p>
 		</header>
 
 		<div class="board">
 			<div class="container-item">
-				<div class="leds">
-					<p>LEDS</p>
-					<Led class="led" state="true"/>
-					<Led class="led" state="true"/>
-					<Led class="led" state="false"/>
-					<Led class="led" state="true"/>
-					<Led class="led" state="true"/>
-					<Led class="led" state="true"/>
-					<Led class="led" state="true"/>
-				</div>
+				
+				<Leds ref="binaryLeds" />
 
 				<div class="sevenSegAndDumpView">
+					
+					<DumpView ref="dumpView"/>
+
 					<div class="sevenSegmentWrapper">
 						<SevenSegment ref="sevenSegment" class="SevenSegment"/>
 					</div>
-
-					<DumpView ref="dumpView"/>
 				</div>
 
-				<div class="program">
-					<p>PROGRAM:</p>
+				<div class="programMemory">
+					<p>PROGRAM MEMORY:</p>
+					<div class="programMemoryText" ref="programMemory">
+0000 0000 0000 0000  0000 0000 0000 0000<br />
+0000 0000 0000 0000  0000 0000 0000 0000<br />
+0000 0000 0000 0000
+					</div>
+				</div>
+
+				<div class="programInput">
+					<p>PROGRAM INPUT:</p>
 					<input type="text" ref="testCode" value="8A91">
+					<div class="buttons">
+						<Button class="myButton" text="SET TO MEMORY" @clicked='onClickProgramInputSetToMemory()'/>
+						<Button class="myButton" text="SET AND RUN" @clicked='onClickProgramInputSetAndRun()'/>
+					</div>
 				</div>
 			</div>
 
@@ -64,8 +70,9 @@
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator';
 import Buttons from './components/Buttons.vue';
+import Button from './components/Button.vue';
 import SevenSegment from './components/SevenSegment.vue';
-import Led from './components/Led.vue';
+import Leds from './components/Leds.vue';
 import DumpView from './components/DumpView/DumpView.vue';
 
 import GMC4 from './pureTypeScriptSrc/gmc4/gmc4';
@@ -76,24 +83,33 @@ import Beep from './pureTypeScriptSrc/Sound/Beep';
 @Component({
 	components: {
 		Buttons,
+		Button,
 		SevenSegment,
-		Led,
+		Leds,
 		DumpView,
 	},
 })
 export default class App extends Vue {
 
 	private sevenSegment: SevenSegment;
+	private binaryLeds: Leds;
 	private gmc4: GMC4;
 	private beep: Beep;
+
+	// キーバッファ
+	// - ASETボタンが押された時、直前の入力二つを繋げてアドレスとする必要がある
+	// - 直前の入力は表示中のLEDを使い、
+	private keyBuffer: number = 0;
 
 	constructor() {
 		super();
 		// const myTest: MyTest = new MyTest('test string here!');
 		// console.log('mytest.GetTest(): ' + myTest.GetTest());
 
-		// TODO: ここで代入しても取れないが、コンストラクタで何か入れないとコンパイルエラーになる……。多分筋の悪いことをやってるんだろう。あとで再検討。
+		// TODO: ここでは取れない。コンパイルエラー対策で一応記述
 		this.sevenSegment = this.$refs.sevenSegment as SevenSegment;
+		// TODO: ここでは取れない。コンパイルエラー対策で一応記述
+		this.binaryLeds = this.$refs.binaryLeds as Leds;
 
 		this.gmc4 = new GMC4();
 		this.beep = new Beep();
@@ -105,9 +121,15 @@ export default class App extends Vue {
 			// undone: もっといい書き方ないのかな。いちいちダウンキャストしたくない
 			this.sevenSegment = this.$refs.sevenSegment as SevenSegment;
 		}
+		if (!this.binaryLeds) {
+			this.binaryLeds = this.$refs.binaryLeds as Leds;
+		}
 
 		// 7セグ表示を初期化
-		this.sevenSegment.set(0x0);
+		this.sevenSegment.Set(0x0);
+
+		// 2進Ledsを初期化
+		this.binaryLeds.Set(0x0);
 
 		// コールバック定義
 		this.gmc4.SetCallback( async (arg1, arg2?) => {
@@ -118,7 +140,7 @@ export default class App extends Vue {
 					if (!arg2) {
 						throw new Error(`[Opcode 0x1: AO] missing argument error: Calls.SetSevenSegmentには第二引数が必要です`);
 					}
-					this.sevenSegment.set(arg2);
+					this.sevenSegment.Set(arg2);
 					return 0;
 
 				case Calls.BeepShort:
@@ -150,28 +172,47 @@ export default class App extends Vue {
 
 	public onClickNumber(num: number) {
 		// console.log('App.vue: onClickButton() num:', num);
-		this.sevenSegment.set(num);
+		this.sevenSegment.Set(num);
 	}
 
 	public onClickButton(type: 'ASET' | 'INCR' | 'RUN' | 'RESET') {
-
-		this.beep.PlayShort();
 
 		// console.log(`App.vue: onClickButton() ${type.toString()}`);
 		switch (type) {
 
 			case 'ASET':
-				console.log('TODO');
+				this.beep.PlayShort();
+				console.log('TODO', this.sevenSegment.num, this.sevenSegment.buffer);
 				break;
 
 			case 'INCR':
+				this.beep.PlayShort();
+
+				// TODO: ちょっと検討中。もうGMC4ってクラス、stateにまとめちまうか？
+				// const nextAddressValue = this.gmc4.IncrementAddress();
+				// this.binaryLeds.Set(this.gmc4.);
+
 				console.log('TODO');
 				break;
 
 			case 'RUN':
+
+				// 1,2,5,6以外だったらエラー音を出してコンソールに注意出力
+				if (
+					this.sevenSegment.num !== 1 &&
+					this.sevenSegment.num !== 2 &&
+					this.sevenSegment.num !== 5 &&
+					this.sevenSegment.num !== 6
+				) {
+					this.beep.PlayError();
+					console.log(`error: 未実装: RUNボタンは1,2,5,6の時のみ実行可能です`);
+					return;
+				}
+
+				// TODO: 各種実行フラグをセットなど
+				this.beep.PlayShort();
 				const code: string = (this.$refs.testCode as HTMLInputElement).value;
 				this.gmc4.SetCode(code);
-				this.gmc4.Reset();
 				this.gmc4.Run();
 				break;
 
@@ -179,7 +220,18 @@ export default class App extends Vue {
 				this.gmc4.SetCode('');
 				this.gmc4.Reset();
 				break;
+
+			// case 'HARD_RESET':
+			// 	break;
 		}
+	}
+
+	public onClickProgramInputSetToMemory() {
+		console.log(`onClickProgramInputSetToMemory()`);
+	}
+
+	public onClickProgramInputSetAndRun() {
+		console.log(`onClickProgramInputSetAndRun()`);
 	}
 }
 </script>
@@ -249,27 +301,14 @@ header {
 	flex-basis: 100%;
 }
 
-.leds {
-	display: flex;
-	width: 100%;
-	margin-left: 0;
-	margin-right: 0;
-}
-.leds p {
-	text-align: left;
-	font-weight: bold;
-	color: white;
-}
 
-.led {
-	margin-left: 0.5em;
-}
-
+// ボタンセット全体
 .Buttons {
 	border: 2px solid rgb(34, 58, 27);
 	width: 100%;
 }
 
+// 7セグ
 .sevenSegAndDumpView {
 	display: flex;
 }
@@ -286,21 +325,42 @@ header {
 	transform: skewX(-5deg);
 }
 
-.program {
+// プログラムメモリ表示＋入力枠
+
+@mixin label{
 	text-align: left;
 	font-weight: bold;
 	color: white;
 	margin-right: 1em;
+}
 
+@mixin textInputGreen{
+	width: 100%;
+	background: rgb(40, 109, 46);
+	border: none;
+	border-radius: 5px;
+	padding: 5px;
+	color: white;
+	font-weight: bold;
+}
+
+.programMemory{
+	@include label();
+	.programMemoryText{
+		@include textInputGreen();
+		font-size : 12px ;
+		margin-bottom : 0.5em;
+	}
+}
+
+.programInput {
+	@include label();
 	input {
-		width: 100%;
-		background: rgb(40, 109, 46);
-		border: none;
-		border-radius: 5px;
-		padding: 5px;
-		color: white;
-		font-weight: bold;
+		@include textInputGreen();
 		box-shadow: 3px 3px 2px rgba(0, 0, 0, 0.4);
+	}
+	.buttons{
+		display: flex;
 	}
 }
 

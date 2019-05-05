@@ -12,6 +12,16 @@ export default class Utils {
 		return num &= ~0xfff0;
 	}
 
+	// 8bitに丸める
+	public static RoundTo8Bit(num: number): number {
+		return num &= ~0xff00;
+	}
+
+	// numから特定のビットを取り出す
+	public static GetBit(num: number, bitIndex: number): boolean {
+		return ( num & (1 << bitIndex) ) !== 0;
+	}
+
 	// awaitでmsec待つ（timr用）
 	public static async Sleep(msec: number): Promise<any> {
 		return new Promise((resolve) => setTimeout(resolve, msec));

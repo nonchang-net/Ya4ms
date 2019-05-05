@@ -386,8 +386,13 @@ export class StateSet {
 
 	public Reset(): void {
 		this.step = 0;
+	}
+
+	public HardReset(): void {
+		this.step = 0;
 		this.flag = false;
 		this.stepMode = false;
 		this.silentMode = false;
 	}
+
 }

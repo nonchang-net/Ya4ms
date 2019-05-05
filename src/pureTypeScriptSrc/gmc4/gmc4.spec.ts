@@ -106,4 +106,20 @@ describe('GMC4.ts', () => {
 	// 811 85EC 821 85EC 831
 
 
+	test(`GetBit() tests`, async () => {
+		let num: number = 3;
+
+		expect(Utils.GetBit(num, 0)).toEqual(true);
+		expect(Utils.GetBit(num, 1)).toEqual(true);
+		expect(Utils.GetBit(num, 2)).toEqual(false);
+
+		num = 4;
+		expect(Utils.GetBit(num, 0)).toEqual(false);
+		expect(Utils.GetBit(num, 1)).toEqual(false);
+		expect(Utils.GetBit(num, 2)).toEqual(true);
+		expect(Utils.GetBit(num, 3)).toEqual(false);
+
+	});
+
+
 })

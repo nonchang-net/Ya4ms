@@ -43,6 +43,12 @@ import { Component, Vue } from 'vue-property-decorator';
 @Component
 export default class SevenSegment extends Vue {
 
+	public num: number = 0;
+
+	// 一つ前の値
+	// - GMC4実装ではASETで直前2キー入力が必要なため定義
+	public buffer: number = 0;
+
 	private A: boolean = false;
 	private B: boolean = false;
 	private C: boolean = false;
@@ -71,7 +77,9 @@ export default class SevenSegment extends Vue {
 		999: [false, false, true , true , true , false, true ], // test: 小文字のoを表示
 	};
 
-	public set(num: number): void {
+	public Set(num: number): void {
+		this.buffer = this.num;
+		this.num = num;
 		const seg = this.segs[num];
 		this.A = seg[0]; this.B = seg[1]; this.C = seg[2];
 		this.D = seg[3]; this.E = seg[4]; this.F = seg[5]; this.G = seg[6];
