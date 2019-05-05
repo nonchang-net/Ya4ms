@@ -11,11 +11,6 @@ import { Component, Prop, Vue } from 'vue-property-decorator';
 @Component
 export default class Led extends Vue {
 	@Prop() private state!: boolean;
-
-	constructor() {
-		super();
-		console.log(`state: ${this.state}`);
-	}
 }
 
 </script>

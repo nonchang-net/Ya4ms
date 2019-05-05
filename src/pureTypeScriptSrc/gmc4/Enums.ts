@@ -6,6 +6,7 @@ export const enum States {
 	programUndone,
 	programFinished,
 	operandNotEnough, // オペランドが足りない
+	InfinityLoopFound, // 無限ループ検知停止(エラーではない)
 }
 
 // オペコード

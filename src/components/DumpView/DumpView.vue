@@ -247,7 +247,7 @@
 
 <script lang="ts">
 import { Component, Prop, Vue } from 'vue-property-decorator';
-import { DumpFormat, RegisterSet } from '../../pureTypeScriptSrc/gmc4/State';
+import { DumpFormat, RegisterSet } from '../../pureTypeScriptSrc/gmc4/gmc4';
 
 @Component
 export default class DumpView extends Vue {

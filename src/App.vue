@@ -2,7 +2,7 @@
 	<div id="app">
 		<header>
 			<h1>Ya4ms: Yet Another 4bit Micon Simulator</h1>
-			<p>ver: 2019 0505 1832</p>
+			<p>ver: 2019 0506 0023</p>
 		</header>
 
 		<div class="board">
@@ -21,12 +21,8 @@
 
 				<div class="programMemory">
 					<p>PROGRAM MEMORY:</p>
-					<div class="programMemoryText" ref="programMemory">
-0000 0000 0000 0000  0000 0000 0000 0000<br />
-0000 0000 0000 0000  0000 0000 0000 0000<br />
-0000 0000 0000 0000
+					<div class="programMemoryText" ref="programMemory" v-html="dumpedProgramMemory" />
 					</div>
-				</div>
 
 				<div class="programInput">
 					<p>PROGRAM INPUT:</p>
@@ -34,6 +30,7 @@
 					<div class="buttons">
 						<Button class="myButton" text="SET TO MEMORY" @clicked='onClickProgramInputSetToMemory()'/>
 						<Button class="myButton" text="SET AND RUN" @clicked='onClickProgramInputSetAndRun()'/>
+						<Button class="myButton" text="HARD RESET" @clicked='onClickHardReset()'/>
 					</div>
 				</div>
 			</div>
@@ -91,10 +88,16 @@ import Beep from './pureTypeScriptSrc/Sound/Beep';
 })
 export default class App extends Vue {
 
+
 	private sevenSegment: SevenSegment;
 	private binaryLeds: Leds;
 	private gmc4: GMC4;
 	private beep: Beep;
+
+	private innerDumpedProgramMemory: string = '';
+	public get dumpedProgramMemory() {
+		return this.innerDumpedProgramMemory;
+	}
 
 	// キーバッファ
 	// - ASETボタンが押された時、直前の入力二つを繋げてアドレスとする必要がある
@@ -167,7 +170,26 @@ export default class App extends Vue {
 		// dumpコールバック設定
 		this.gmc4.SetDebugCallback((dumps) => {
 			(this.$refs.dumpView as any).Set(dumps);
+
+			let dumpProgram = '';
+			for (let i = 0 ; i < dumps.program.length; i++) {
+				if (i !== 0) {
+					if (i % 32 === 0) {
+						dumpProgram += '<br />';
+					} else if (i % 16 === 0) {
+						dumpProgram += '  ';
+					} else if (i % 4 === 0) {
+						dumpProgram += ' ';
+					}
+				}
+				dumpProgram += dumps.program[i].toString(16).toUpperCase();
+			}
+			this.innerDumpedProgramMemory = dumpProgram;
+
 		});
+
+		// 初回dump
+		this.gmc4.DoDumpCallback();
 	}
 
 	public onClickNumber(num: number) {
@@ -177,27 +199,29 @@ export default class App extends Vue {
 
 	public onClickButton(type: 'ASET' | 'INCR' | 'RUN' | 'RESET') {
 
-		// console.log(`App.vue: onClickButton() ${type.toString()}`);
 		switch (type) {
 
 			case 'ASET':
 				this.beep.PlayShort();
-				console.log('TODO', this.sevenSegment.num, this.sevenSegment.buffer);
+				this.gmc4.SetAddress(this.sevenSegment.buffer * 0x10 + this.sevenSegment.num);
+				this.binaryLeds.Set(this.gmc4.GetCurrentStep());
+				this.sevenSegment.Set(this.gmc4.GetCurrentAddressValue());
+				this.gmc4.DoDumpCallback();
 				break;
 
 			case 'INCR':
 				this.beep.PlayShort();
+				this.gmc4.IncrementAddress(this.sevenSegment.num);
+				this.binaryLeds.Set(this.gmc4.GetCurrentStep());
+				this.sevenSegment.Set(this.gmc4.GetCurrentAddressValue());
+				this.gmc4.DoDumpCallback();
 
-				// TODO: ちょっと検討中。もうGMC4ってクラス、stateにまとめちまうか？
-				// const nextAddressValue = this.gmc4.IncrementAddress();
-				// this.binaryLeds.Set(this.gmc4.);
-
-				console.log('TODO');
 				break;
 
 			case 'RUN':
 
 				// 1,2,5,6以外だったらエラー音を出してコンソールに注意出力
+				// UNDONE: 組み込みアプリ実行の実装予定はありません
 				if (
 					this.sevenSegment.num !== 1 &&
 					this.sevenSegment.num !== 2 &&
@@ -205,33 +229,43 @@ export default class App extends Vue {
 					this.sevenSegment.num !== 6
 				) {
 					this.beep.PlayError();
-					console.log(`error: 未実装: RUNボタンは1,2,5,6の時のみ実行可能です`);
+					console.log(`error: 未実装: RUNボタンは7セグ表示が1,2,5,6の時のみ実行可能です`);
 					return;
 				}
 
-				// TODO: 各種実行フラグをセットなど
 				this.beep.PlayShort();
-				const code: string = (this.$refs.testCode as HTMLInputElement).value;
-				this.gmc4.SetCode(code);
 				this.gmc4.Run();
 				break;
 
 			case 'RESET':
-				this.gmc4.SetCode('');
 				this.gmc4.Reset();
+				this.binaryLeds.Set(this.gmc4.GetCurrentStep());
+				this.sevenSegment.Set(this.gmc4.GetCurrentAddressValue());
+				this.gmc4.DoDumpCallback();
 				break;
 
-			// case 'HARD_RESET':
-			// 	break;
 		}
 	}
 
 	public onClickProgramInputSetToMemory() {
-		console.log(`onClickProgramInputSetToMemory()`);
+		this.gmc4.HardReset();
+		const code: string = (this.$refs.testCode as HTMLInputElement).value;
+		this.gmc4.SetCode(code);
+		this.binaryLeds.Set(this.gmc4.GetCurrentStep());
+		this.sevenSegment.Set(this.gmc4.GetCurrentAddressValue());
+		this.gmc4.DoDumpCallback();
 	}
 
 	public onClickProgramInputSetAndRun() {
-		console.log(`onClickProgramInputSetAndRun()`);
+		this.onClickProgramInputSetToMemory();
+		this.gmc4.Run();
+	}
+
+	public onClickHardReset() {
+		this.gmc4.HardReset();
+		this.binaryLeds.Set(this.gmc4.GetCurrentStep());
+		this.sevenSegment.Set(this.gmc4.GetCurrentAddressValue());
+		this.gmc4.DoDumpCallback();
 	}
 }
 </script>
