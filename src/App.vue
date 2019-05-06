@@ -22,18 +22,10 @@
 				<div class="programMemory">
 					<p>PROGRAM MEMORY:</p>
 					<div class="programMemoryText" ref="programMemory" v-html="dumpedProgramMemory" />
-					</div>
-
-				<div class="programInput">
-					<p>PROGRAM INPUT:</p>
-					<input type="text" ref="testCode" value="8A91">
-					<div class="buttons">
-						<Button class="myButton" text="SET TO MEMORY" @clicked='onClickProgramInputSetToMemory()'/>
-						<Button class="myButton" text="SET AND RUN" @clicked='onClickProgramInputSetAndRun()'/>
-						<Button class="myButton" text="HARD RESET" @clicked='onClickHardReset()'/>
-					</div>
 				</div>
+
 			</div>
+
 
 			<div class="container-item">
 				<Buttons
@@ -42,15 +34,36 @@
 					@click-number="onClickNumber"
 					@click-button="onClickButton"
 				/>
+				<div class="programInput">
+					<p>PROGRAM INPUT:</p>
+					<input type="text" ref="testCode" value="8A91">
+					<div class="buttons">
+						<Button class="myButton" text="SET TO MEMORY" @clicked='onClickProgramInputSetToMemory()'/>
+						<Button class="myButton" text="SET AND RUN" @clicked='onClickProgramInputSetAndRun()'/>
+						<Button class="myButton" text="HARD RESET" @clicked='onClickHardReset()'/>
+						<Button class="myButton" text="STEP" @clicked='onClickStep()'/>
+					</div>
+				</div>
 			</div>
+
+
 		</div>
 		<hr>
 
 		<div class="sampleCodes">
 			<h2>サンプルコード</h2>
 			<dl>
-				<dt>0.5秒置きにLEDが1,2,3と変化するコード</dt>
-				<dd>811 85EC 821 85EC 831</dd>
+				<dt>0.5秒置きにLEDを1,2,3と変化させる(RESETで終了)</dt>
+				<dd>
+					811 85EC 821 85EC 831 85EC F00
+					<Button class="myButton" text="SET TO MEMORY" @clicked='onClickProgramInputSetToMemory("811 85EC 821 85EC 831 85EC F00")'/>
+				</dd>
+
+				<dt>エラー音とエンド音を順に鳴らして終了する</dt>
+				<dd>
+					E8 E7 F04
+					<Button class="myButton" text="SET TO MEMORY" @clicked='onClickProgramInputSetToMemory("E8 E7 F04")'/>
+				</dd>
 			</dl>
 		</div>
 
@@ -73,7 +86,7 @@ import Leds from './components/Leds.vue';
 import DumpView from './components/DumpView/DumpView.vue';
 
 import GMC4 from './pureTypeScriptSrc/gmc4/gmc4';
-import { Calls } from './pureTypeScriptSrc/gmc4/Enums';
+import { States, Calls } from './pureTypeScriptSrc/gmc4/Enums';
 
 import Beep from './pureTypeScriptSrc/Sound/Beep';
 
@@ -247,9 +260,11 @@ export default class App extends Vue {
 		}
 	}
 
-	public onClickProgramInputSetToMemory() {
+	public onClickProgramInputSetToMemory(code?: string) {
 		this.gmc4.HardReset();
-		const code: string = (this.$refs.testCode as HTMLInputElement).value;
+		if (!code) {
+			code = (this.$refs.testCode as HTMLInputElement).value;
+		}
 		this.gmc4.SetCode(code);
 		this.binaryLeds.Set(this.gmc4.GetCurrentStep());
 		this.sevenSegment.Set(this.gmc4.GetCurrentAddressValue());
@@ -263,6 +278,21 @@ export default class App extends Vue {
 
 	public onClickHardReset() {
 		this.gmc4.HardReset();
+		this.binaryLeds.Set(this.gmc4.GetCurrentStep());
+		this.sevenSegment.Set(this.gmc4.GetCurrentAddressValue());
+		this.gmc4.DoDumpCallback();
+	}
+
+	public async onClickStep() {
+		const result = await this.gmc4.RunStep();
+		// console.log(`step: result=${result} `);
+
+		if (result !== States.programUndone) {
+			// undone以外は終了かエラーなのでReset()しておく
+			console.log(`ステップ実行で終了状態を検知しました。アドレス0にresetします。`);
+			this.gmc4.Reset();
+		}
+
 		this.binaryLeds.Set(this.gmc4.GetCurrentStep());
 		this.sevenSegment.Set(this.gmc4.GetCurrentAddressValue());
 		this.gmc4.DoDumpCallback();
@@ -295,6 +325,7 @@ header {
 	margin: 0;
 }
 
+// サンプルコード枠
 .sampleCodes {
 	margin: 1em;
 	font-size: 12px;
@@ -308,10 +339,8 @@ header {
 		font-size: 14px;
 		border-bottom: 1px solid gray;
 	}
-	dl {
-		margin-top: 5px;
-	}
 	dt {
+		margin-top: 1em;
 		border-left: 5px solid gray;
 		padding-left: 5px;
 		font-weight: bold;
@@ -320,6 +349,9 @@ header {
 		border: none;
 		margin-left: 10px;
 		font-weight: normal;
+	}
+	.myButton {
+		width : 150px ;
 	}
 }
 
@@ -369,6 +401,7 @@ header {
 }
 
 @mixin textInputGreen{
+	font-family: monospace;
 	width: 100%;
 	background: rgb(40, 109, 46);
 	border: none;
@@ -428,60 +461,60 @@ header {
 
 // Github Ribbon
 // 参考: http://codepo8.github.io/css-fork-on-github-ribbon/
-#forkongithub a {
-	background: #000;
-	color: #fff;
-	text-decoration: none;
-	font-family: arial, sans-serif;
-	text-align: center;
-	font-weight: bold;
-	padding: 5px 40px;
-	font-size: 1rem;
-	line-height: 2rem;
-	position: relative;
-	transition: 0.5s;
-}
-#forkongithub a:hover {
-	background: #c11;
-	color: #fff;
-}
-#forkongithub a::before,
-#forkongithub a::after {
-	content: "";
-	width: 100%;
-	display: block;
-	position: absolute;
-	top: 1px;
-	left: 0;
-	height: 1px;
-	background: #fff;
-}
-#forkongithub a::after {
-	bottom: 1px;
-	top: auto;
-}
-@media screen and (min-width: 800px) {
-	#forkongithub {
-		position: fixed;
-		display: block;
-		top: 0;
-		right: 0;
-		width: 200px;
-		overflow: hidden;
-		height: 200px;
-		z-index: 9999;
-	}
-	#forkongithub a {
-		width: 200px;
-		position: absolute;
-		top: 60px;
-		right: -60px;
-		transform: rotate(45deg);
-		-webkit-transform: rotate(45deg);
-		-ms-transform: rotate(45deg);
-		-moz-transform: rotate(45deg);
-		-o-transform: rotate(45deg);
-		box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.8);
-	}
-}
+// #forkongithub a {
+// 	background: #000;
+// 	color: #fff;
+// 	text-decoration: none;
+// 	font-family: arial, sans-serif;
+// 	text-align: center;
+// 	font-weight: bold;
+// 	padding: 5px 40px;
+// 	font-size: 1rem;
+// 	line-height: 2rem;
+// 	position: relative;
+// 	transition: 0.5s;
+// }
+// #forkongithub a:hover {
+// 	background: #c11;
+// 	color: #fff;
+// }
+// #forkongithub a::before,
+// #forkongithub a::after {
+// 	content: "";
+// 	width: 100%;
+// 	display: block;
+// 	position: absolute;
+// 	top: 1px;
+// 	left: 0;
+// 	height: 1px;
+// 	background: #fff;
+// }
+// #forkongithub a::after {
+// 	bottom: 1px;
+// 	top: auto;
+// }
+// @media screen and (min-width: 800px) {
+// 	#forkongithub {
+// 		position: fixed;
+// 		display: block;
+// 		top: 0;
+// 		right: 0;
+// 		width: 200px;
+// 		overflow: hidden;
+// 		height: 200px;
+// 		z-index: 9999;
+// 	}
+// 	#forkongithub a {
+// 		width: 200px;
+// 		position: absolute;
+// 		top: 60px;
+// 		right: -60px;
+// 		transform: rotate(45deg);
+// 		-webkit-transform: rotate(45deg);
+// 		-ms-transform: rotate(45deg);
+// 		-moz-transform: rotate(45deg);
+// 		-o-transform: rotate(45deg);
+// 		box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.8);
+// 	}
+// }
 </style>

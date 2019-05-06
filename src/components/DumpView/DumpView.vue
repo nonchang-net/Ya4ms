@@ -75,7 +75,7 @@
 				</div>
 			</div>
 
-			<div style="width : 30px ;"/>
+			<div style="width : 10px ;"/>
 
 			<div class="row">
 				<div class="header">
@@ -93,6 +93,8 @@
 					{{ flag }}
 				</div>
 			</div>
+
+			<!--
 			<div class="row">
 				<div class="header">
 					silent
@@ -109,6 +111,7 @@
 					{{ runMode }}
 				</div>
 			</div>
+			-->
 		</div>
 
 		<div class="column">

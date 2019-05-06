@@ -140,7 +140,9 @@ export default class GMC4 {
 
 		if ('string' === typeof program) {
 			// 文字列から読み込み
-			const buf = new ArrayBuffer(program.length);
+
+			// 書き込み先index
+			let index = -1;
 
 			for (let i = 0; i < program.length; i++) {
 				// 読みやすく書けるよう、半角スペースは無視する
@@ -151,7 +153,8 @@ export default class GMC4 {
 				if (isNaN(nible)) {
 					throw Error(`parse error: invalid symbol at index ${i}. ${program[i]}`);
 				}
-				this.program[i] = nible;
+				index++;
+				this.program[index] = nible;
 			}
 
 		} else {
@@ -349,20 +352,29 @@ export default class GMC4 {
 					return States.operandNotEnough;
 				}
 
-				const preJumpAddress = this.stateSet.step;
+				// Jump元アドレス
+				const preJumpAddress = this.stateSet.step - 1;
 
 				const highAddress: number = this.GetNextCode();
 				const lowAddress: number = this.GetNextCode();
-				if (this.stateSet.flag) {
-					let address: number = highAddress * 0x10 + lowAddress;
 
+				console.log(
+					`Ops.Jump評価 flag=${this.stateSet.flag} preJumpAddress=${preJumpAddress} `
+					+ `address=${highAddress * 0x10 + lowAddress}`,
+				);
+
+				if (this.stateSet.flag) {
+					const address: number = highAddress * 0x10 + lowAddress;
+
+					// Jump先がJump元の場合は無限ループなので、実行停止を意図したものと判定し終了する
 					if (preJumpAddress === address) {
 						return States.InfinityLoopFound;
 					}
 
-					// UNDONE: プログラムメモリを超えていたらとりあえず0番地に戻す(仕様未確認)
+					// UNDONE: プログラムメモリを超えていたらとりあえず0番地に戻す？終了する？(仕様未確認、とりあえず終了させる)
 					if (address > 0x4F) {
-						address = 0;
+						// address = 0; // ループ
+						return States.programFinished;
 					}
 
 					this.stateSet.step = address;
@@ -370,9 +382,10 @@ export default class GMC4 {
 				break;
 		}
 
-		// 末尾到達したら最初に戻る（この仕様であってるか未確認）
+		// UNDONE: 末尾到達したらとりあえず0番地に戻す？終了する？(仕様未確認、とりあえず終了させる)
 		if (this.program.length === this.stateSet.step) {
-			this.stateSet.step = 0;
+			// this.stateSet.step = 0;
+			return States.programFinished;
 		}
 		return States.programUndone;
 	}
@@ -445,10 +458,10 @@ export default class GMC4 {
 			case 0xD: // 0xD: DSPR TODO:
 				break;
 
-			case 0xE: // 0xE: DEMminus - UNDONE: 用途がよくわからない
+			case 0xE: // 0xE: DEMminus - UNDONE: BCD? 利用例を調査中
 				break;
 
-			case 0xF: // 0xF: DEMplus - UNDONE: 用途がよくわからない
+			case 0xF: // 0xF: DEMplus - UNDONE: BCD? 利用例を調査中
 				break;
 		}
 	}
