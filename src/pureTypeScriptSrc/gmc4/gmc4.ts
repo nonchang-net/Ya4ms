@@ -404,7 +404,7 @@ export default class GMC4 {
 		switch (code) {
 
 			// 表示・サウンド関係はそのままフラグ立ててコールバックを呼ぶ
-			case Calls.RestoreSevenSegmentToZero: // RSTO
+			case Calls.SevenSegmentToOff: // RSTO
 			case Calls.SetBinaryLeds: // SETR
 			case Calls.ResetBinaryLeds: // RSTR
 			case Calls.BeepEnd: // ENDS
@@ -447,7 +447,6 @@ export default class GMC4 {
 
 			case Calls.RightShiftForARegister: // SIFT
 				this.stateSet.flag = Math.floor(this.registers.a % 2) === 1;
-				// undone: 4bit考慮は不要？ ここで下位4bit分残して他をクリアしておくべきかも。
 				this.registers.a = Math.floor(this.registers.a / 2);
 				break;
 
@@ -455,13 +454,20 @@ export default class GMC4 {
 				await Utils.Sleep((this.registers.a + 1) * 100);
 				break;
 
-			case 0xD: // 0xD: DSPR TODO:
+			case Calls.DisplayBinaryLed: // 0xD: DSPR: メモリ5F、5Eの内容を2進数LEDに表示
+				if (this.callback) {
+					this.stateSet.flag = true;
+					const mem: number = this.memory[0xF] * 0x10 + this.memory[0xE];
+					await this.callback(code, mem);
+				}
 				break;
 
 			case 0xE: // 0xE: DEMminus - UNDONE: BCD? 利用例を調査中
+				console.log(`TODO: DEM-: 未実装です`);
 				break;
 
 			case 0xF: // 0xF: DEMplus - UNDONE: BCD? 利用例を調査中
+				console.log(`TODO: DEM+: 未実装です`);
 				break;
 		}
 	}

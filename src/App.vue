@@ -33,6 +33,8 @@
 					ref="buttons"
 					@click-number="onClickNumber"
 					@click-button="onClickButton"
+					@touch-start="onTouchStartNumber"
+					@touch-end="onTouchEndNumber"
 				/>
 				<div class="programInput">
 					<p>PROGRAM INPUT:</p>
@@ -53,7 +55,8 @@
 		<div class="sampleCodes">
 			<h2>サンプルコード</h2>
 			<dl>
-				<dt>0.5秒置きにLEDを1,2,3と変化させる(RESETで終了)</dt>
+
+				<dt>0.5秒置きに7セグを1,2,3と変化させる(RESETで終了)</dt>
 				<dd>
 					811 85EC 821 85EC 831 85EC F00
 					<Button class="myButton" text="SET TO MEMORY" @clicked='onClickProgramInputSetToMemory("811 85EC 821 85EC 831 85EC F00")'/>
@@ -64,6 +67,18 @@
 					E8 E7 F04
 					<Button class="myButton" text="SET TO MEMORY" @clicked='onClickProgramInputSetToMemory("E8 E7 F04")'/>
 				</dd>
+
+				<dt>2進数LEDを一つおきに表示・反転するループ(RESETで終了)</dt>
+				<dd>
+					85 AF 4 85 AE 4 ED 85EC 82 AF 4 8A AE 4 ED 85EC F00
+					<Button class="myButton" text="SET TO MEMORY" @clicked='onClickProgramInputSetToMemory("85 AF 4 85 AE 4 ED 85EC 82 AF 4 8A AE 4 ED 85EC F00")'/>
+
+				<dt>7セグをE→消灯ループ(RESETで終了)</dt>
+				<dd>
+					8E1 85EC E0 85EC F00
+					<Button class="myButton" text="SET TO MEMORY" @clicked='onClickProgramInputSetToMemory("8E1 85EC E0 85EC F00")'/>
+				</dd>
+
 			</dl>
 		</div>
 
@@ -154,9 +169,13 @@ export default class App extends Vue {
 			switch (arg1) {
 				case Calls.SetSevenSegment:
 					if (!arg2) {
-						throw new Error(`[Opcode 0x1: AO] missing argument error: Calls.SetSevenSegmentには第二引数が必要です`);
+						throw new Error(`[Opcode 0x1: AO] missing argument error: Calls.SetSevenSegment には第二引数が必要です`);
 					}
 					this.sevenSegment.Set(arg2);
+					return 0;
+
+				case Calls.SevenSegmentToOff:
+					this.sevenSegment.Set(998);
 					return 0;
 
 				case Calls.BeepShort:
@@ -173,6 +192,13 @@ export default class App extends Vue {
 
 				case Calls.BeepError:
 					await this.beep.PlayError();
+					return 0;
+
+				case Calls.DisplayBinaryLed:
+					if (!arg2) {
+						throw new Error(`[Calls 0xD: DSPR] missing argument error: Calls.DisplayBinaryLed には第二引数が必要です`);
+					}
+					this.binaryLeds.Set(arg2);
 					return 0;
 
 				// TODO: 他のサービスはまだ。
@@ -208,6 +234,14 @@ export default class App extends Vue {
 	public onClickNumber(num: number) {
 		// console.log('App.vue: onClickButton() num:', num);
 		this.sevenSegment.Set(num);
+	}
+
+	public onTouchStartNumber(num: number) {
+		console.log(`App.vue: onTouchStartNumber() ${num}`);
+	}
+
+	public onTouchEndNumber() {
+		console.log(`App.vue: onTouchEndNumber()`);
 	}
 
 	public onClickButton(type: 'ASET' | 'INCR' | 'RUN' | 'RESET') {

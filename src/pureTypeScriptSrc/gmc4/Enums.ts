@@ -32,7 +32,7 @@ export const enum Ops {
 // サービスコール(E0-Ef → CAL XXXX)ニーモニック
 // - ここではコールバックにまとめるため、OpcodeのKeyToARegisterも追加定義。
 export const enum Calls {
-	RestoreSevenSegmentToZero = 0x0, // 0x0: RSTO: 表示初期化: 0→数字LED
+	SevenSegmentToOff = 0x0, // 0x0: RSTO: 7セグ消灯
 	SetBinaryLeds, // 0x1: SETR: 表示: 1→2進LED[Y]
 	ResetBinaryLeds, // 0x2: RSTR: 表示: 0→2進LED[Y]
 	// 0x3は欠番。FXマイコンでは外部入力ポートK1,K2の読み取り
@@ -45,7 +45,7 @@ export const enum Calls {
 	BeepLong, // 0xA: LONS: サウンド: ロング音
 	PlaySound, // 0xB: SUNS: サウンド: Arの音階の音
 	Timer = 0xC, // 0xC: TIMR: タイマー: (Ar+1)x0.1sec待つ
-	DSPR, // 0xD: DSPR: 表示: (E)→2進LED[0:3],(F)→2進LED[4:6]
+	DisplayBinaryLed, // 0xD: DSPR: 表示: (E)→2進LED[0:3],(F)→2進LED[4:6]
 	DEMminus, // 0xE: DEM-: DEC((Y)-Ar)→(Y),Y-- : これなんだろ？
 	DEMplus,  // 0xF: DEM+: DEC((Y)+Ar)→(Y),Y-- : これなんだろ？
 

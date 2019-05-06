@@ -74,6 +74,7 @@ export default class SevenSegment extends Vue {
 		0xD: [false, true , true , true , true , false, true ],
 		0xE: [true , false, false, true , true , true , true ],
 		0xF: [true , false, false, false, true , true , true ],
+		998: [false, false, false, false, false, false, false], // 消灯
 		999: [false, false, true , true , true , false, true ], // test: 小文字のoを表示
 	};
 

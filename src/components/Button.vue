@@ -1,6 +1,10 @@
 <template>
 	<div class="Button">
-		<div class="inner" @click="onClick">
+		<div class="inner"
+			@click="onClick"
+			@mousedown="onTouchStart"
+			@mouseup="onTouchEnd"
+			>
 			<p>{{ text }}</p>
 		</div>
 	</div>
@@ -13,21 +17,20 @@ import { Component, Emit, Prop, Vue } from 'vue-property-decorator';
 export default class Button extends Vue {
 	@Prop() private text!: string;
 
-	// @Emit()
-	// public clicked() {
-	// 	if (false) { console.log('TODO: ignore warning : block is empty'); }
-	// }
-
-	// public GetText(): string {
-	// 	return this.text;
-	// }
-
 	@Emit('clicked')
 	public onClick() {
-		// console.log('CLICK() ' + this.text);
-		// this.clicked();
+		// note: ignore warning: block is empty
 	}
 
+	@Emit('touchStart')
+	public onTouchStart() {
+		// note: ignore warning: block is empty
+	}
+
+	@Emit('touchEnd')
+	public onTouchEnd() {
+		// note: ignore warning: block is empty
+	}
 }
 
 </script>
